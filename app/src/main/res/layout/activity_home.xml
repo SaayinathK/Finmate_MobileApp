@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <!-- AppBar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="0dp">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@android:color/transparent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Dashboard"
+                        android:textColor="@color/blue_700"
+                        android:textSize="24sp"
+                        android:fontFamily="@font/inter_semibold"/>
+
+                    <ImageButton
+                        android:id="@+id/refreshButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/refresh"
+                        android:contentDescription="Refresh"
+                        app:tint="@color/blue_700"/>
+                </LinearLayout>
+
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="80dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Balance Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Balance"
+                        android:textColor="@color/blue_700"
+                        android:textSize="16sp"
+                        android:alpha="0.7"/>
+
+                    <TextView
+                        android:id="@+id/balanceAmount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LKR 0.00"
+                        android:textColor="@color/blue_700"
+                        android:textSize="32sp"
+                        android:fontFamily="@font/inter_semibold"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Income & Expense Cards -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <!-- Income -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:background="#E3F2FD">
+
+                        <TextView
+                            android:text="Income"
+                            android:textColor="#1565C0"
+                            android:textSize="14sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                        <TextView
+                            android:id="@+id/incomeAmount"
+                            android:text="LKR 0.00"
+                            android:textColor="#0D47A1"
+                            android:textSize="20sp"
+                            android:fontFamily="@font/inter_semibold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Expense -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:background="#FFEBEE">
+
+                        <TextView
+                            android:text="Expenses"
+                            android:textColor="#D32F2F"
+                            android:textSize="14sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                        <TextView
+                            android:id="@+id/expenseAmount"
+                            android:text="LKR 0.00"
+                            android:textColor="#B71C1C"
+                            android:textSize="20sp"
+                            android:fontFamily="@font/inter_semibold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- Budget Usage -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Budget Usage"
+                        android:textColor="@color/blue_700"
+                        android:textSize="16sp"
+                        android:fontFamily="@font/inter_semibold"/>
+
+                    <!-- ✅ Added Budget Limit TextView -->
+                    <TextView
+                        android:id="@+id/budgetLimitText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Budget Limit: LKR 0.00"
+                        android:textColor="@color/blue_700"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter_medium"
+                        android:layout_marginTop="12dp"/>
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/budgetProgressBar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:progress="50"
+                        app:trackThickness="8dp"
+                        app:trackCornerRadius="4dp"/>
+
+                    <TextView
+                        android:id="@+id/budgetWarning"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Good Standing"
+                        android:textColor="@color/light_gray"
+                        android:textStyle="italic"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Quick Action Buttons -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/addTransactionButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add New Transaction"
+                android:textSize="16sp"
+                android:padding="16dp"
+                android:layout_marginBottom="8dp"
+                app:cornerRadius="12dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/transactionHistoryButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Transaction History"
+                android:textSize="16sp"
+                android:padding="16dp"
+                android:layout_marginBottom="8dp"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/blue_700"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/categoryAnalysisButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Category Analysis"
+                android:textSize="16sp"
+                android:padding="16dp"
+                android:layout_marginBottom="8dp"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/blue_700"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/budgetSetupButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Budget Setup"
+                android:textSize="16sp"
+                android:padding="16dp"
+                android:layout_marginBottom="8dp"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/blue_700"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/exportImportButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Export / Import"
+                android:textSize="16sp"
+                android:padding="16dp"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/blue_700"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Navigation -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:elevation="8dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/nav_background"
+        app:itemIconSize="24dp"
+        app:itemIconTint="@color/white"
+        app:itemTextAppearanceActive="@style/TextAppearance.AppCompat.Caption"
+        app:itemTextAppearanceInactive="@style/TextAppearance.AppCompat.Caption"
+        app:itemTextColor="@color/white"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/nav_bottom" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
