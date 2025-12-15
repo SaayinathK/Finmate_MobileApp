@@ -10,4 +10,8 @@
     <color name="grey">#E0DFDF</color>
     <color name="green">#029702</color>
     <color name="red">#FF0000</color>
+    <color name="blue">#0053A2</color>
+    <color name="nav_active">#BBE1FA</color>
+    <color name="nav_inactive">#E3F2FD</color>
+    <color name="nav_active_accent">#FFD166</color> <!-- Golden accent for active state -->
 </resources>

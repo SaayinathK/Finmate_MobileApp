@@ -1,17 +1,19 @@
-    <androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#FFFFFF">
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
 
+    <!-- ScrollView for main content -->
     <ScrollView
         android:id="@+id/exportScroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -19,7 +21,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:gravity="center_horizontal">
+            android:gravity="center_horizontal"
+            android:paddingBottom="24dp">
 
             <!-- Title Row -->
             <LinearLayout
@@ -28,7 +31,8 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:paddingEnd="16dp"
-                android:layout_marginTop="24dp">
+                android:layout_marginTop="25dp"
+                android:layout_marginStart="16dp">
 
                 <ImageView
                     android:id="@+id/backArrow"
@@ -41,7 +45,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="40dp"
-                    android:paddingTop="20dp"
                     android:fontFamily="@font/inter_semibold"
                     android:text="Export / Import Data"
                     android:textSize="25sp"
@@ -49,97 +52,107 @@
                     android:textColor="#1976D2"/>
             </LinearLayout>
 
-            <!-- Export JSON Button -->
-
-            <!-- Export Text Button -->
-            <LinearLayout
-                android:id="@+id/exportJsonButton"
-                android:layout_width="350dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:background="@drawable/greengradient"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp">
-
-                <TextView
-                    android:id="@+id/tv_export_json"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/inter_semibold"
-                    android:gravity="center"
-                    android:text="Export as JSON"
-                    android:textAlignment="center"
-                    android:textColor="@android:color/white"
-                    android:textSize="22sp" />
-            </LinearLayout>
-
+            <!-- Export XLSX Button -->
             <LinearLayout
                 android:id="@+id/exportTextButton"
-                android:layout_width="350dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
-                android:background="@drawable/greengradient"
-                android:gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/rounded_green_button"
+                android:elevation="6dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp">
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:contentDescription="XLSX Icon"
+                    android:src="@drawable/ic_xlsx_export" />
 
                 <TextView
                     android:id="@+id/tv_export_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
                     android:fontFamily="@font/inter_semibold"
-                    android:gravity="center"
-                    android:text="Export as Text"
-                    android:textAlignment="center"
-                    android:textColor="@android:color/white"
-                    android:textSize="22sp" />
+                    android:text="Export as XLSX"
+                    android:textColor="@android:color/holo_green_dark"
+                    android:textSize="20sp" />
             </LinearLayout>
 
-            <!-- Import Button -->
+            <!-- Import XLSX Button -->
             <LinearLayout
                 android:id="@+id/importButton"
-                android:layout_width="350dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="32dp"
-                android:background="@drawable/gradient_button"
-                android:gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/rounded_blue_button"
+                android:elevation="6dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="8dp">
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:contentDescription="Import Icon"
+                    android:src="@drawable/ic_xlsx_import" />
 
                 <TextView
                     android:id="@+id/tv_import"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
                     android:fontFamily="@font/inter_semibold"
-                    android:gravity="center"
-                    android:text="Import Data"
-                    android:textAlignment="center"
-                    android:textColor="@android:color/white"
-                    android:textSize="22sp" />
+                    android:text="Import from XLSX"
+                    android:textColor="@android:color/holo_blue_dark"
+                    android:textSize="20sp" />
             </LinearLayout>
+
+            <!-- Imported Files Label -->
+            <TextView
+                android:id="@+id/importedFilesLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Imported Files"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/inter_bold"
+                android:textColor="#333333"
+                android:textSize="18sp"
+                android:visibility="gone" />
+
+            <!-- RecyclerView for Transactions -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerImportedFiles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:visibility="gone"
+                android:nestedScrollingEnabled="false" />
+
+            <!-- RecyclerView for File Names -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerImportedFileNames"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"
+                android:nestedScrollingEnabled="false" />
         </LinearLayout>
     </ScrollView>
-        <!-- Bottom Navigation Bar -->
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNavigation"
-            android:elevation="8dp"
-            android:layout_gravity="bottom"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="@drawable/nav_background"
-            app:menu="@menu/nav_bottom"
-            app:itemIconSize="28dp"
-            app:itemIconTint="@color/white"
-            app:itemTextColor="@color/white"
-            app:itemTextAppearanceActive="@style/TextAppearance.AppCompat.Caption"
-            app:itemTextAppearanceInactive="@style/TextAppearance.AppCompat.Caption"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:labelVisibilityMode="labeled"
-            app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Bottom Navigation -->
+    <com.example.financetracker.ui.BottomNavBar
+        android:id="@+id/bottomNav"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

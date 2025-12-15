@@ -12,7 +12,7 @@
         android:layout_width="44dp"
         android:layout_height="35dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="25dp"
         android:contentDescription="Back"
         android:src="@drawable/ic_back_arrow"
         app:layout_constraintTop_toTopOf="parent"
@@ -23,9 +23,9 @@
         android:id="@+id/scrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="10dp"
         android:padding="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/backArrow">
@@ -33,9 +33,9 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
             android:orientation="vertical">
 
+            <!-- Title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -45,6 +45,36 @@
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
+            <!-- 📅 Year Input -->
+
+            <!-- 🔷 Month Input -->
+            <AutoCompleteTextView
+                android:id="@+id/yearInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_white_card"
+                android:hint="Select year"
+                android:inputType="none"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/black"
+                android:textColorHint="@color/light_gray"
+                android:textSize="16sp" />
+
+            <AutoCompleteTextView
+                android:id="@+id/monthInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_white_card"
+                android:hint="Select month"
+                android:textColorHint="@color/light_gray"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:inputType="none" />
+
+            <!-- Budget Input -->
             <EditText
                 android:id="@+id/budgetInput"
                 android:layout_width="match_parent"
@@ -58,19 +88,25 @@
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
-            <EditText
+            <!-- Currency Input -->
+            <AutoCompleteTextView
                 android:id="@+id/currencyInput"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:background="@drawable/rounded_white_card"
-                android:hint="Enter currency (e.g., USD, LKR)"
+                android:hint="Select currency"
                 android:textColorHint="@color/light_gray"
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:inputType="none" />
 
+
+
+
+
+            <!-- 🧾 Status -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -84,13 +120,11 @@
                 android:id="@+id/currentMonthStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
                 android:text="Total Spending: LKR 0.00"
                 android:textColor="#D32F2F"
-                android:textSize="18sp"/>
+                android:textSize="18sp" />
 
-
-            <!-- Save Budget Button -->
+            <!-- 💾 Save Budget Button -->
             <LinearLayout
                 android:id="@+id/saveButton"
                 android:layout_width="match_parent"
@@ -117,23 +151,14 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- Bottom Navigation Bar -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
+    <!-- 🔽 Bottom Navigation Bar -->
+    <com.example.financetracker.ui.BottomNavBar
+        android:id="@+id/bottomNav"
         android:elevation="8dp"
-        android:layout_gravity="bottom"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/nav_background"
-        app:menu="@menu/nav_bottom"
-        app:itemIconSize="28dp"
-        app:itemIconTint="@color/white"
-        app:itemTextColor="@color/white"
-        app:itemTextAppearanceActive="@style/TextAppearance.AppCompat.Caption"
-        app:itemTextAppearanceInactive="@style/TextAppearance.AppCompat.Caption"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:labelVisibilityMode="labeled"
-        app:layout_constraintEnd_toEndOf="parent" />
-
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

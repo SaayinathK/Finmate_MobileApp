@@ -40,15 +40,6 @@
                         android:textColor="@color/blue_700"
                         android:textSize="24sp"
                         android:fontFamily="@font/inter_semibold"/>
-
-                    <ImageButton
-                        android:id="@+id/refreshButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/transparent"
-                        android:src="@drawable/refresh"
-                        android:contentDescription="Refresh"
-                        app:tint="@color/blue_700"/>
                 </LinearLayout>
 
             </androidx.appcompat.widget.Toolbar>
@@ -68,117 +59,172 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Balance Card -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- 📅 Date Range Row -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <Button
+                    android:id="@+id/btnSelectDateRange"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/white"
-                    android:orientation="vertical"
-                    android:padding="20dp">
+                    android:backgroundTint="@color/blue_500"
+                    android:text="@string/Year_Month"
+                    android:textColor="@android:color/white"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Balance"
-                        android:textColor="@color/blue_700"
-                        android:textSize="16sp"
-                        android:alpha="0.7"/>
+                <TextView
+                    android:id="@+id/textSelectedMonthYear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="April 2025"
+                    android:textColor="@color/blue_700"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/balanceAmount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="LKR 0.00"
-                        android:textColor="@color/blue_700"
-                        android:textSize="32sp"
-                        android:fontFamily="@font/inter_semibold"/>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            <!-- Balance Card -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:background="@color/white">
+
+                <TextView
+                    android:id="@+id/balanceLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="0dp"
+                    android:alpha="0.7"
+                    android:text="Balance"
+                    android:textColor="@color/blue_700"
+                    android:textSize="25sp" />
+
+                <TextView
+                    android:id="@+id/balanceAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/balanceLabel"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="@font/inter_semibold"
+                    android:text="LKR 0.00"
+                    android:textColor="@color/blue_700"
+                    android:textSize="32sp" />
+            </RelativeLayout>
 
             <!-- Income & Expense Cards -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="16dp"
+                android:padding="8dp"
+                android:weightSum="2">
 
                 <!-- Income -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="120dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp">
+                    app:cardElevation="4dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="#B3E5FC"
+                    android:layout_marginBottom="8dp"
+                    android:backgroundTint="#E3F2FD">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:padding="16dp"
-                        android:background="#E3F2FD">
+                        android:gravity="center_horizontal">
 
                         <TextView
                             android:text="Income"
                             android:textColor="#1565C0"
                             android:textSize="14sp"
+                            android:fontFamily="@font/inter_semibold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"/>
 
-                        <TextView
-                            android:id="@+id/incomeAmount"
-                            android:text="LKR 0.00"
-                            android:textColor="#0D47A1"
-                            android:textSize="20sp"
-                            android:fontFamily="@font/inter_semibold"
-                            android:layout_width="wrap_content"
+                        <HorizontalScrollView
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"/>
+                            android:scrollbars="none">
+
+                            <TextView
+                                android:id="@+id/incomeAmount"
+                                android:text="LKR 0.00"
+                                android:textColor="#0D47A1"
+                                android:textSize="22sp"
+                                android:fontFamily="@font/inter_semibold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:scrollHorizontally="true"
+                                android:ellipsize="none"/>
+                        </HorizontalScrollView>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <!-- Expense -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="120dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp">
+                    app:cardElevation="4dp"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="#FFCDD2"
+                    android:layout_marginBottom="8dp"
+                    android:backgroundTint="#FFEBEE">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:padding="16dp"
-                        android:background="#FFEBEE">
+                        android:gravity="center_horizontal">
 
                         <TextView
                             android:text="Expenses"
                             android:textColor="#D32F2F"
                             android:textSize="14sp"
+                            android:fontFamily="@font/inter_semibold"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"/>
 
-                        <TextView
-                            android:id="@+id/expenseAmount"
-                            android:text="LKR 0.00"
-                            android:textColor="#B71C1C"
-                            android:textSize="20sp"
-                            android:fontFamily="@font/inter_semibold"
-                            android:layout_width="wrap_content"
+                        <HorizontalScrollView
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"/>
+                            android:scrollbars="none">
+
+                            <TextView
+                                android:id="@+id/expenseAmount"
+                                android:text="LKR 0.00"
+                                android:textColor="#B71C1C"
+                                android:textSize="22sp"
+                                android:fontFamily="@font/inter_semibold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:scrollHorizontally="true"
+                                android:ellipsize="none"/>
+                        </HorizontalScrollView>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
+
+
 
             <!-- Budget Usage -->
             <com.google.android.material.card.MaterialCardView
@@ -217,11 +263,14 @@
                     <com.google.android.material.progressindicator.LinearProgressIndicator
                         android:id="@+id/budgetProgressBar"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="16dp"
                         android:layout_marginTop="16dp"
-                        android:progress="50"
+                        android:progress="0"
                         app:trackThickness="8dp"
-                        app:trackCornerRadius="4dp"/>
+                        app:trackCornerRadius="4dp"
+                        app:trackColor="@android:color/darker_gray"
+                        app:indicatorColor="@android:color/darker_gray" />
+
 
                     <TextView
                         android:id="@+id/budgetWarning"
@@ -294,20 +343,11 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
+    <!-- 🔽 Bottom Navigation -->
+    <com.example.financetracker.ui.BottomNavBar
+        android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:elevation="8dp"
-        android:layout_gravity="bottom"
-        android:background="@drawable/nav_background"
-        app:itemIconSize="24dp"
-        app:itemIconTint="@color/white"
-        app:itemTextAppearanceActive="@style/TextAppearance.AppCompat.Caption"
-        app:itemTextAppearanceInactive="@style/TextAppearance.AppCompat.Caption"
-        app:itemTextColor="@color/white"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/nav_bottom" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

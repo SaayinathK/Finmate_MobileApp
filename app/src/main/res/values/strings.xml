@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Finance Tracker</string>
+    <string name="app_name">FinMate</string>
     <string name="transaction_history">Transaction History</string>
     <string name="transaction_list">List of all recorded transactions</string>
     <string name="start">Get Started</string>
@@ -12,4 +12,21 @@
     <string name="signup">Sign up</string>
     <string name="signin">Sign In</string>
     <string name="back_btn_text">BACK</string>
+    <string name="transaction_list_description">List of transactions grouped by month and year</string>
+    <string name="Year_Month">Select Month &amp; Year</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="home_date">April 2025</string>
+    <string name="balance">Balance</string>
+    <string name="home_amount">LKR 0.00</string>
+    <string name="income">Income</string>
+    <string name="expenses">Expenses</string>
+    <string name="budget_usage">Budget Usage</string>
+    <string name="budget_limit">Budget Limit: LKR 0.00</string>
+    <string name="good_standing">Good Standing</string>
+    <string name="add_new_transaction">Add New Transaction</string>
+    <string name="category_analysis">Category Analysis</string>
+    <string name="budget_setup">Budget Setup</string>
+    <string name="export_import">Export / Import</string>
+    <string name="loan_amount">LKR %1$s</string>
+    <string name="filter_tabs">Filter tabs</string>
 </resources>

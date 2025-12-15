@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:id="@+id/signup_main_layout"
     android:background="#1976D3"
-    tools:context=".LoginActivity"
+    tools:context=".activities.LoginActivity"
     android:fillViewport="true">
 
     <LinearLayout
@@ -136,7 +136,7 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
-                android:id="@+id/signup_button"
+                android:id="@+id/loginButton"
                 android:layout_width="320dp"
                 android:layout_height="58dp"
                 android:layout_marginTop="32dp"
@@ -171,7 +171,7 @@
                 android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@id/login_redirect_button"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/signup_button" />
+                app:layout_constraintTop_toBottomOf="@id/loginButton" />
 
             <Button
                 android:id="@+id/login_redirect_button"

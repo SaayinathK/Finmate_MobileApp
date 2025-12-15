@@ -6,6 +6,9 @@
     <!-- Permissions -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
 
     <application
         android:allowBackup="true"
@@ -20,7 +23,7 @@
 
         <!-- Splash screen as launcher -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".activities.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,29 +33,30 @@
 
         <!-- Daily reminder receiver -->
         <receiver
-            android:name=".DailyReminderReceiver"
+            android:name=".receiver.DailyReminderReceiver"
             android:exported="true" />
 
         <!-- Boot receiver to reset daily alarms after reboot -->
         <receiver
-            android:name=".BootReceiver"
+            android:name=".repository.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        <activity android:name=".AddTransactionActivity" />
-        <activity android:name=".BootReceiver" />
-        <activity android:name=".BudgetSetupActivity" />
-        <activity android:name=".CategoryAnalysisActivity" />
-        <activity android:name=".DailyReminderReceiver" />
-        <activity android:name=".ExportImportActivity" />
-        <activity android:name=".HomeActivity" />
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".SettingsActivity" />
-        <activity android:name=".SignupActivity" />
-        <activity android:name=".TransactionHistoryActivity" />
+        <activity android:name=".activities.AddTransactionActivity" />
+        <activity android:name=".repository.BootReceiver" />
+        <activity android:name=".activities.BudgetSetupActivity" />
+        <activity android:name=".activities.CategoryAnalysisActivity" />
+        <activity android:name=".receiver.DailyReminderReceiver" />
+        <activity android:name=".activities.ExportImportActivity" />
+        <activity android:name=".activities.HomeActivity" />
+        <activity android:name=".activities.LoansActivity" />
+        <activity android:name=".activities.LoginActivity" />
+        <activity android:name=".activities.SettingsActivity" />
+        <activity android:name=".activities.SignupActivity" />
+        <activity android:name=".activities.TransactionHistoryActivity" />
 
 
 
