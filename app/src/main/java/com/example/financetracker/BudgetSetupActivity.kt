@@ -3,6 +3,8 @@ package com.example.financetracker
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.inputmethod.EditorInfo
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.financetracker.databinding.ActivityBudgetSetupBinding
@@ -16,6 +18,15 @@ class BudgetSetupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityBudgetSetupBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 🌍 Setup currency dropdown
+        val currencyOptions = listOf("LKR", "USD", "EUR", "INR", "GBP", "AUD")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, currencyOptions)
+        binding.currencyInput.setAdapter(adapter)
+        binding.currencyInput.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) binding.currencyInput.showDropDown()
+        }
+        binding.currencyInput.inputType = EditorInfo.TYPE_NULL // Prevent keyboard
 
         // 🧭 Bottom Navigation
         binding.bottomNavigation.setOnItemSelectedListener { item ->

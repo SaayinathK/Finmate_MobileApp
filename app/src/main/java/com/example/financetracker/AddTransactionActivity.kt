@@ -5,23 +5,22 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.example.financetracker.databinding.ActivityAddTransactionBinding
 import java.text.SimpleDateFormat
 import java.util.*
-import com.example.financetracker.databinding.ActivityAddTransactionBinding
 
 class AddTransactionActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityAddTransactionBinding
     private lateinit var titleEditText: EditText
     private lateinit var amountEditText: EditText
-    private lateinit var categorySpinner: Spinner
+    private lateinit var categorySpinner: AutoCompleteTextView
     private lateinit var dateTextView: TextView
     private lateinit var incomeRadioButton: RadioButton
     private lateinit var expenseRadioButton: RadioButton
     private lateinit var saveButtonLayout: LinearLayout
     private lateinit var cancelButtonLayout: LinearLayout
     private lateinit var backArrow: ImageView
-    private lateinit var binding: ActivityAddTransactionBinding
-
 
     private val calendar = Calendar.getInstance()
     private val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
@@ -33,7 +32,6 @@ class AddTransactionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAddTransactionBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
 
         // 🧭 Bottom Navigation
         binding.bottomNavigation.setOnItemSelectedListener { item ->
@@ -54,7 +52,12 @@ class AddTransactionActivity : AppCompatActivity() {
             }
         }
 
-        // Bind views
+        setupViews()
+        setupListeners()
+        checkEditMode()
+    }
+
+    private fun setupViews() {
         titleEditText = findViewById(R.id.titleEditText)
         amountEditText = findViewById(R.id.amountEditText)
         categorySpinner = findViewById(R.id.categorySpinner)
@@ -65,17 +68,24 @@ class AddTransactionActivity : AppCompatActivity() {
         expenseRadioButton = findViewById(R.id.expenseRadioButton)
         backArrow = findViewById(R.id.backArrow)
 
-        // Setup category spinner
-        val categories = listOf("Select Category", "Food", "Transport", "Salary", "Shopping", "Bills", "Other")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categories)
-        categorySpinner.adapter = adapter
+        val categories = listOf("Food", "Transport", "Shopping", "Health", "Bills")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, categories)
+        categorySpinner.setAdapter(adapter)
+    }
 
-        // Back arrow
+    private fun setupListeners() {
+        categorySpinner.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) categorySpinner.showDropDown()
+        }
+
+        categorySpinner.setOnClickListener {
+            categorySpinner.showDropDown()
+        }
+
         backArrow.setOnClickListener {
             finish()
         }
 
-        // Date picker
         dateTextView.setOnClickListener {
             val datePicker = DatePickerDialog(
                 this,
@@ -90,7 +100,17 @@ class AddTransactionActivity : AppCompatActivity() {
             datePicker.show()
         }
 
-        // Check if this is edit mode
+        saveButtonLayout.setOnClickListener {
+            saveTransaction()
+        }
+
+        cancelButtonLayout.setOnClickListener {
+            finish()
+        }
+    }
+
+
+    private fun checkEditMode() {
         editMode = intent.getBooleanExtra("editMode", false)
         if (editMode) {
             editPosition = intent.getIntExtra("position", -1)
@@ -100,58 +120,53 @@ class AddTransactionActivity : AppCompatActivity() {
             val date = intent.getStringExtra("date")
             val type = intent.getStringExtra("type")
 
-            // Pre-fill data
             titleEditText.setText(title)
             amountEditText.setText(kotlin.math.abs(amount).toString())
             dateTextView.text = date
             if (type == "Income") incomeRadioButton.isChecked = true else expenseRadioButton.isChecked = true
-            val categoryIndex = categories.indexOf(category)
-            if (categoryIndex != -1) categorySpinner.setSelection(categoryIndex)
-        }
-
-        // Save button logic
-        saveButtonLayout.setOnClickListener {
-            val title = titleEditText.text.toString().trim()
-            val amountStr = amountEditText.text.toString().trim()
-            val category = categorySpinner.selectedItem.toString()
-            val date = dateTextView.text.toString().trim()
-            val isIncome = incomeRadioButton.isChecked
-
-            if (title.isEmpty() || amountStr.isEmpty() || category == "Select Category" || date == "Select Date") {
-                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            category?.let {
+                categorySpinner.setText(it, false)
             }
-
-            val amount = amountStr.toDoubleOrNull()
-            if (amount == null || amount <= 0) {
-                Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val finalAmount = if (isIncome) amount else -amount
-            val type = if (isIncome) "Income" else "Expense"
-
-            val resultIntent = Intent(this, TransactionHistoryActivity::class.java).apply {
-                putExtra("title", title)
-                putExtra("amount", finalAmount)
-                putExtra("category", category)
-                putExtra("date", date)
-                putExtra("type", type)
-
-                if (editMode) {
-                    putExtra("editMode", true)
-                    putExtra("position", editPosition)
-                }
-            }
-            startActivity(resultIntent)
-            finish()
         }
-
-        cancelButtonLayout.setOnClickListener {
-            finish()
-        }
-
-
     }
 
+    private fun saveTransaction() {
+        val title = titleEditText.text.toString().trim()
+        val amountStr = amountEditText.text.toString().trim()
+        val category = categorySpinner.text.toString().trim()
+        val date = dateTextView.text.toString().trim()
+        val isIncome = incomeRadioButton.isChecked
+
+        if (title.isEmpty() || amountStr.isEmpty() || category.isEmpty() || date.isEmpty()) {
+            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val amount = amountStr.toDoubleOrNull()
+        if (amount == null || amount <= 0) {
+            Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val finalAmount = if (isIncome) amount else -amount
+        val type = if (isIncome) "Income" else "Expense"
+
+        val transaction = Transaction(
+            title = title,
+            amount = finalAmount,
+            category = category,
+            date = date,
+            type = type
+        )
+
+        if (editMode) {
+            StorageManager.updateTransaction(this, editPosition, transaction)
+            Toast.makeText(this, "Transaction updated", Toast.LENGTH_SHORT).show()
+        } else {
+            StorageManager.saveTransaction(this, transaction)
+            Toast.makeText(this, "Transaction saved", Toast.LENGTH_SHORT).show()
+        }
+
+        finish() // ✅ Go back without startActivity
+    }
 }

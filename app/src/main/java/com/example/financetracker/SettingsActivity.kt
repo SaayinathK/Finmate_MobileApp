@@ -1,166 +1,252 @@
 package com.example.financetracker
 
+import android.app.Activity
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.financetracker.databinding.ActivitySettingsBinding
-import java.io.*
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import org.apache.poi.ss.usermodel.WorkbookFactory
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
-    private val currencies = listOf("USD", "EUR", "LKR", "INR", "GBP")
-    private val fileName = "transactions.txt"
+    private val exportRequestCode = 2001
+    private val importRequestCode = 2002
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Back arrow click → HomeActivity
+        NotificationHelper.createNotificationChannel(this)
+
         binding.backArrow.setOnClickListener {
             startActivity(Intent(this, HomeActivity::class.java))
             finish()
         }
 
-        // Set up the currency spinner
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, currencies)
-        binding.currencySpinner.setAdapter(adapter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 100)
+            }
+        }
 
-        // Load the saved settings (currency and notifications status)
+        val currencyOptions = listOf("LKR", "USD", "EUR", "INR", "GBP", "AUD")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, currencyOptions)
+        binding.currencyInput.setAdapter(adapter)
+        binding.currencyInput.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) binding.currencyInput.showDropDown()
+        }
+        binding.currencyInput.inputType = EditorInfo.TYPE_NULL
+
         loadSettings()
 
-        // Save settings when the user presses the Save button
         binding.saveButton.setOnClickListener {
-            val selectedCurrency = binding.currencySpinner.text.toString()
-            val notificationsEnabled = binding.notificationsSwitch.isChecked
-
-            // Save preferences
+            val selectedCurrency = binding.currencyInput.text.toString()
             val prefs = getSharedPreferences("FinMatePrefs", MODE_PRIVATE)
-            val editor = prefs.edit()
-            editor.putString("currency", selectedCurrency)
-            editor.putBoolean("notifications_enabled", notificationsEnabled)
-            editor.apply()
-
-            Toast.makeText(this, "Saved: $selectedCurrency | Notifications: $notificationsEnabled", Toast.LENGTH_SHORT).show()
+            prefs.edit().putString("currency", selectedCurrency).apply()
+            Toast.makeText(this, "Saved: $selectedCurrency", Toast.LENGTH_SHORT).show()
         }
 
-        // EXPORT data
         binding.exportButton.setOnClickListener {
-            val transactions = loadTransactions()  // Assuming you have a method to get transactions
-            val transactionStrings = transactions.map {
-                "Title: ${it.title}, Amount: ${it.amount}, Category: ${it.category}, Date: ${it.date}, Type: ${it.type}"
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                putExtra(Intent.EXTRA_TITLE, "transactions.xlsx")
             }
-            exportData(transactionStrings)
+            startActivityForResult(intent, exportRequestCode)
         }
 
-        // IMPORT data
         binding.importButton.setOnClickListener {
-            val data = importData()
-            if (data.isNotEmpty()) {
-                Toast.makeText(this, "Imported: ${data.size} items", Toast.LENGTH_SHORT).show()
-                data.forEach { println("Imported: $it") }
-            } else {
-                Toast.makeText(this, "No data to import!", Toast.LENGTH_SHORT).show()
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             }
+            startActivityForResult(intent, importRequestCode)
         }
 
-        // RESET data
         binding.resetButton.setOnClickListener {
-            resetAllData()
+            showPasswordValidationDialog()
+        }
+
+        binding.logoutButton.setOnClickListener {
+            showLogoutConfirmationDialog()
         }
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.home -> {
-                    startActivity(Intent(this, HomeActivity::class.java))
-                    true
-                }
-                R.id.history -> {
-                    startActivity(Intent(this, TransactionHistoryActivity::class.java))
-                    true
-                }
-                R.id.analysis -> {
-                    startActivity(Intent(this, CategoryAnalysisActivity::class.java))
-                    true
-                }
-                R.id.setting -> {
-                    startActivity(Intent(this, SettingsActivity::class.java))
-                    true
-                }
-                else -> false
+                R.id.home -> startActivity(Intent(this, HomeActivity::class.java))
+                R.id.history -> startActivity(Intent(this, TransactionHistoryActivity::class.java))
+                R.id.analysis -> startActivity(Intent(this, CategoryAnalysisActivity::class.java))
+                R.id.setting -> startActivity(Intent(this, SettingsActivity::class.java))
             }
+            true
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        val uri = data?.data ?: return
+
+        when (requestCode) {
+            exportRequestCode -> if (resultCode == Activity.RESULT_OK) exportToExcel(uri)
+            importRequestCode -> if (resultCode == Activity.RESULT_OK) importFromExcel(uri)
+        }
+    }
+
+    private fun exportToExcel(uri: Uri) {
+        try {
+            val prefs = getSharedPreferences("FinMatePrefs", Context.MODE_PRIVATE)
+            val json = prefs.getString("transactions", "[]")
+            val type = object : TypeToken<List<Transaction>>() {}.type
+            val transactions: List<Transaction> = Gson().fromJson(json, type)
+
+            val workbook = XSSFWorkbook()
+            val sheet = workbook.createSheet("Transactions")
+
+            val headerRow = sheet.createRow(0)
+            val headers = listOf("Title", "Amount", "Category", "Date", "Type")
+            headers.forEachIndexed { index, title ->
+                headerRow.createCell(index).setCellValue(title)
+            }
+
+            transactions.forEachIndexed { index, txn ->
+                val row = sheet.createRow(index + 1)
+                row.createCell(0).setCellValue(txn.title)
+                row.createCell(1).setCellValue(txn.amount)
+                row.createCell(2).setCellValue(txn.category)
+                row.createCell(3).setCellValue(txn.date)
+                row.createCell(4).setCellValue(txn.type)
+            }
+
+            contentResolver.openOutputStream(uri)?.use {
+                workbook.write(it)
+                workbook.close()
+            }
+
+            Toast.makeText(this, "Export successful!", Toast.LENGTH_SHORT).show()
+            NotificationHelper.sendNotification(this, "Export Complete", "Transactions exported successfully.")
+
+        } catch (e: Exception) {
+            Toast.makeText(this, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun importFromExcel(uri: Uri) {
+        try {
+            val transactions = mutableListOf<Transaction>()
+            contentResolver.openInputStream(uri)?.use { input ->
+                val workbook = WorkbookFactory.create(input)
+                val sheet = workbook.getSheetAt(0)
+
+                for (i in 1..sheet.lastRowNum) {
+                    val row = sheet.getRow(i)
+                    val txn = Transaction(
+                        title = row.getCell(0).stringCellValue,
+                        amount = row.getCell(1).numericCellValue,
+                        category = row.getCell(2).stringCellValue,
+                        date = row.getCell(3).stringCellValue,
+                        type = row.getCell(4).stringCellValue
+                    )
+                    transactions.add(txn)
+                }
+
+                workbook.close()
+                getSharedPreferences("FinMatePrefs", Context.MODE_PRIVATE).edit()
+                    .putString("transactions", Gson().toJson(transactions)).apply()
+
+                Toast.makeText(this, "Import successful!", Toast.LENGTH_SHORT).show()
+                NotificationHelper.sendNotification(this, "Import Complete", "Transactions imported successfully.")
+            }
+
+        } catch (e: Exception) {
+            Toast.makeText(this, "Import failed: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun showPasswordValidationDialog() {
+        val input = EditText(this)
+        input.hint = "Enter password"
+        input.inputType = EditorInfo.TYPE_TEXT_VARIATION_PASSWORD
+
+        AlertDialog.Builder(this)
+            .setTitle("Password Required")
+            .setMessage("Please enter your password to reset all data.")
+            .setView(input)
+            .setPositiveButton("Confirm") { _: DialogInterface, _: Int ->
+                val enteredPassword = input.text.toString()
+                val prefs = getSharedPreferences("FinMateUserData", Context.MODE_PRIVATE)
+                val savedPassword = prefs.getString("password", "")
+
+                if (enteredPassword == savedPassword) {
+                    showResetConfirmationDialog()
+                } else {
+                    Toast.makeText(this, "Incorrect password. Reset cancelled.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showResetConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Confirm Reset")
+            .setMessage("Are you sure you want to reset all data? This action cannot be undone.")
+            .setPositiveButton("Yes") { _: DialogInterface, _: Int ->
+                resetAllData()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun resetAllData() {
+        getSharedPreferences("FinMatePrefs", MODE_PRIVATE).edit().clear().apply()
+        deleteFile("transactions.txt")
+
+        getSharedPreferences("FinMateUserData", MODE_PRIVATE).edit().putBoolean("is_logged_in", false).apply()
+
+        NotificationHelper.sendNotification(this, "Data Reset", "All app data has been erased.")
+        Toast.makeText(this, "All data has been reset!", Toast.LENGTH_SHORT).show()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Confirm Logout")
+            .setMessage("Are you sure you want to log out?")
+            .setPositiveButton("Yes") { _: DialogInterface, _: Int ->
+                logoutUser()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun logoutUser() {
+        getSharedPreferences("FinMateUserData", MODE_PRIVATE).edit().putBoolean("is_logged_in", false).apply()
+
+        NotificationHelper.sendNotification(this, "Logout Successful", "You have been logged out from FinMate.")
+        Toast.makeText(this, "You have been logged out!", Toast.LENGTH_SHORT).show()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
     }
 
     private fun loadSettings() {
         val prefs = getSharedPreferences("FinMatePrefs", MODE_PRIVATE)
         val currency = prefs.getString("currency", "LKR") ?: "LKR"
-        val notificationsEnabled = prefs.getBoolean("notifications_enabled", true)
-
-        binding.currencySpinner.setText(currency, false)
-        binding.notificationsSwitch.isChecked = notificationsEnabled
-    }
-
-    private fun exportData(data: List<String>) {
-        try {
-            openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
-                data.forEach { output.write((it + "\n").toByteArray()) }
-            }
-            Toast.makeText(this, "Data exported to $fileName", Toast.LENGTH_SHORT).show()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Toast.makeText(this, "Export failed!", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun importData(): List<String> {
-        val result = mutableListOf<String>()
-        try {
-            openFileInput(fileName).bufferedReader().useLines { lines ->
-                lines.forEach { result.add(it) }
-            }
-        } catch (e: FileNotFoundException) {
-            Toast.makeText(this, "No file found to import!", Toast.LENGTH_SHORT).show()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Toast.makeText(this, "Import failed!", Toast.LENGTH_SHORT).show()
-        }
-        return result
-    }
-
-    private fun resetAllData() {
-        val prefs = getSharedPreferences("FinMatePrefs", MODE_PRIVATE)
-        val editor = prefs.edit()
-        editor.clear()  // Clear all preferences (currency, notifications, etc.)
-        editor.apply()
-
-        // Optionally, reset transactions data as well
-        deleteFile(fileName)
-
-        Toast.makeText(this, "All data has been reset!", Toast.LENGTH_SHORT).show()
-
-        // Optionally, log the user out
-        val userPrefs = getSharedPreferences("FinMateUserData", Context.MODE_PRIVATE)
-        val userEditor = userPrefs.edit()
-        userEditor.putBoolean("is_logged_in", false)  // Set logged-in status to false
-        userEditor.apply()
-
-        // Redirect to login screen
-        startActivity(Intent(this, LoginActivity::class.java))
-        finish()
-    }
-
-    // Now this method loads real transaction data
-    private fun loadTransactions(): List<Transaction> {
-        // Example data - replace with your actual transaction loading logic
-        return listOf(
-            Transaction("Coffee", 300.0, "Food", "2024-04-10", "Expense"),
-            Transaction("Bus Fare", 150.0, "Transport", "2024-04-11", "Expense"),
-            Transaction("Salary", 5000.0, "Income", "2024-04-01", "Income")
-        )
+        binding.currencyInput.setText(currency, false)
     }
 }

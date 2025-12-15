@@ -7,10 +7,11 @@
 
     <!-- ScrollView for content -->
     <ScrollView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="56dp"
+        android:fillViewport="true"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -27,16 +28,14 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="16dp">
 
-                <!-- Back Button -->
                 <ImageView
                     android:id="@+id/backArrow"
                     android:layout_width="44dp"
                     android:layout_height="35dp"
                     android:contentDescription="Back"
                     android:src="@drawable/ic_back_arrow"
-                    android:layout_marginEnd="8dp"/>
+                    android:layout_marginEnd="8dp" />
 
-                <!-- Title -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -47,10 +46,8 @@
                     android:textColor="#1976D2"
                     android:layout_marginStart="8dp"
                     android:layout_marginBottom="16dp" />
-
             </LinearLayout>
 
-            <!-- Income/Expense Radio Buttons -->
             <RadioGroup
                 android:id="@+id/typeRadioGroup"
                 android:layout_width="match_parent"
@@ -65,7 +62,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/inter_semibold"
                     android:text="Income"
-                    android:textColor="#66BB6A"
+                    android:textColor="#000000"
                     android:textSize="17sp"
                     android:checked="true" />
 
@@ -76,11 +73,10 @@
                     android:text="Expense"
                     android:fontFamily="@font/inter_semibold"
                     android:textSize="17sp"
-                    android:textColor="#F44336"
+                    android:textColor="#000000"
                     android:layout_marginStart="32dp" />
             </RadioGroup>
 
-            <!-- Title Input -->
             <EditText
                 android:id="@+id/titleEditText"
                 android:layout_width="match_parent"
@@ -91,7 +87,6 @@
                 android:textColor="#000000"
                 android:textColorHint="#999999" />
 
-            <!-- Amount Input -->
             <EditText
                 android:id="@+id/amountEditText"
                 android:layout_width="match_parent"
@@ -104,8 +99,7 @@
                 android:textColor="#000000"
                 android:textColorHint="#999999" />
 
-            <!-- Category Spinner -->
-            <Spinner
+            <AutoCompleteTextView
                 android:id="@+id/categorySpinner"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
@@ -113,30 +107,31 @@
                 android:background="@drawable/rounded_white_card"
                 android:hint="Category"
                 android:textColorHint="@color/light_gray"
+                android:textColor="@color/black"
                 android:padding="12dp"
-                android:spinnerMode="dropdown"
+                android:inputType="none"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
                 android:contentDescription="Select Category" />
 
-            <!-- Date TextView -->
             <TextView
                 android:id="@+id/dateTextView"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginTop="24dp"
-                android:padding="12dp"
+                android:padding="15dp"
                 android:background="@drawable/rounded_white_card"
                 android:text="Select Date"
+                android:textColorHint="#000000"
                 android:textSize="17sp"
-                android:textColor="#000000" />
+                android:textColor="#999999" />
 
-            <!-- Buttons for Save and Cancel -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center">
 
-                <!-- Save Button -->
                 <LinearLayout
                     android:id="@+id/saveButton"
                     android:layout_width="match_parent"
@@ -160,7 +155,6 @@
                         android:textSize="22sp" />
                 </LinearLayout>
 
-                <!-- Cancel Button -->
                 <LinearLayout
                     android:id="@+id/cancelButton"
                     android:layout_width="match_parent"
@@ -183,7 +177,6 @@
                         android:textColor="@color/white"
                         android:textSize="22sp" />
                 </LinearLayout>
-
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
@@ -192,7 +185,6 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:elevation="8dp"
-        android:layout_gravity="bottom"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/nav_background"
@@ -204,7 +196,7 @@
         app:itemTextAppearanceInactive="@style/TextAppearance.AppCompat.Caption"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:labelVisibilityMode="labeled"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:labelVisibilityMode="labeled" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

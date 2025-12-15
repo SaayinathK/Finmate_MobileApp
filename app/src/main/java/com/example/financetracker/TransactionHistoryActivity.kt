@@ -22,11 +22,21 @@ class TransactionHistoryActivity : AppCompatActivity() {
         binding = ActivityTransactionHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupRecyclerView()
+        setupNavigation()
+
         binding.backArrow.setOnClickListener {
             startActivity(Intent(this, HomeActivity::class.java))
             finish()
         }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        reloadTransactions()
+    }
+
+    private fun setupRecyclerView() {
         loadSavedTransactions()
 
         adapter = TransactionAdapter(
@@ -58,9 +68,9 @@ class TransactionHistoryActivity : AppCompatActivity() {
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
+    }
 
-        handleIncomingTransaction()
-
+    private fun setupNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.home -> {
@@ -81,31 +91,9 @@ class TransactionHistoryActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleIncomingTransaction() {
-        val editMode = intent.getBooleanExtra("editMode", false)
-        val position = intent.getIntExtra("position", -1)
-
-        val title = intent.getStringExtra("title")
-        val amount = intent.getDoubleExtra("amount", 0.0)
-        val category = intent.getStringExtra("category")
-        val date = intent.getStringExtra("date")
-        val type = intent.getStringExtra("type")
-
-        if (!title.isNullOrEmpty() && !category.isNullOrEmpty() && !date.isNullOrEmpty() && amount != 0.0) {
-            val txn = Transaction(title, amount, category, date, type ?: "Other")
-
-            if (editMode && position in transactions.indices) {
-                transactions[position] = txn
-                adapter.notifyItemChanged(position)
-                Toast.makeText(this, "Transaction updated", Toast.LENGTH_SHORT).show()
-            } else {
-                transactions.add(txn)
-                adapter.notifyItemInserted(transactions.size - 1)
-                Toast.makeText(this, "Transaction added", Toast.LENGTH_SHORT).show()
-            }
-
-            saveTransactions()
-        }
+    private fun reloadTransactions() {
+        loadSavedTransactions()
+        adapter.notifyDataSetChanged()
     }
 
     private fun loadSavedTransactions() {

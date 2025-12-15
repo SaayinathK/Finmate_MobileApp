@@ -35,13 +35,6 @@ class CategoryAnalysisActivity : AppCompatActivity() {
         setupBarChart()
         displaySummary()
 
-        // Refresh button
-        binding.refreshButton.setOnClickListener {
-            setupPieChart()
-            setupBarChart()
-            displaySummary()
-        }
-
         // Bottom navigation
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {

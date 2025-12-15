@@ -1,0 +1,10 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:gravity="center">
+        <inset
+            android:drawable="@drawable/ic_app_logo"
+            android:insetLeft="500dp"
+            android:insetTop="100dp"
+            android:insetRight="500dp"
+            android:insetBottom="100dp" />
+    </item>
+</layer-list>

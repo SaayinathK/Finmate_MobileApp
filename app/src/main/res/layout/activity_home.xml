@@ -41,14 +41,6 @@
                         android:textSize="24sp"
                         android:fontFamily="@font/inter_semibold"/>
 
-                    <ImageButton
-                        android:id="@+id/refreshButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@android:color/transparent"
-                        android:src="@drawable/refresh"
-                        android:contentDescription="Refresh"
-                        app:tint="@color/blue_700"/>
                 </LinearLayout>
 
             </androidx.appcompat.widget.Toolbar>
@@ -112,7 +104,7 @@
                 <!-- Income -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="100dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     app:cardCornerRadius="16dp"
@@ -120,10 +112,11 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:padding="16dp"
-                        android:background="#E3F2FD">
+                        android:background="#E3F2FD"
+                        android:gravity="center">
 
                         <TextView
                             android:text="Income"
@@ -147,7 +140,7 @@
                 <!-- Expense -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="100dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     app:cardCornerRadius="16dp"
@@ -155,10 +148,11 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:padding="16dp"
-                        android:background="#FFEBEE">
+                        android:background="#FFEBEE"
+                        android:gravity="center">
 
                         <TextView
                             android:text="Expenses"
@@ -178,6 +172,7 @@
                             android:layout_marginTop="8dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
+
             </LinearLayout>
 
             <!-- Budget Usage -->
@@ -217,11 +212,15 @@
                     <com.google.android.material.progressindicator.LinearProgressIndicator
                         android:id="@+id/budgetProgressBar"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="16dp"
                         android:layout_marginTop="16dp"
-                        android:progress="50"
+                        android:progress="0"
                         app:trackThickness="8dp"
-                        app:trackCornerRadius="4dp"/>
+                        app:trackCornerRadius="4dp"
+                        app:trackColor="@android:color/darker_gray"
+                        app:indicatorColor="@android:color/darker_gray" />
+
+
 
                     <TextView
                         android:id="@+id/budgetWarning"

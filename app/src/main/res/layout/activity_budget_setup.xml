@@ -58,18 +58,22 @@
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
-            <EditText
+            <AutoCompleteTextView
                 android:id="@+id/currencyInput"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="15dp"
                 android:layout_marginBottom="24dp"
                 android:background="@drawable/rounded_white_card"
-                android:hint="Enter currency (e.g., USD, LKR)"
+                android:hint="Select currency"
                 android:textColorHint="@color/light_gray"
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/black"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                android:inputType="none"
+                android:dropDownHeight="wrap_content"
+                android:dropDownVerticalOffset="8dp" />
+
 
             <TextView
                 android:layout_width="wrap_content"

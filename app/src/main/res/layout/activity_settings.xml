@@ -53,36 +53,20 @@
                 android:text="Select Currency" />
 
             <AutoCompleteTextView
-                android:id="@+id/currencySpinner"
+                android:id="@+id/currencyInput"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@drawable/rounded_white_card"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:textColor="#000000"
-                android:textSize="17sp"
+                android:layout_height="50dp"
                 android:layout_marginTop="15dp"
-                android:dropDownHeight="150dp"
-                android:hint="Enter currency (e.g., USD, LKR)"
+                android:layout_marginBottom="5dp"
+                android:background="@drawable/rounded_white_card"
+                android:hint="Select currency"
                 android:textColorHint="@color/light_gray"
-                android:inputType="text"
-                android:importantForAccessibility="yes" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Notifications"
-                android:textSize="18sp"
-                android:textColor="#5B5555"
-                android:layout_marginTop="24dp" />
-
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/notificationsSwitch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:text="Enable Notifications"
-                android:textColor="#000000"/>
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:inputType="none"
+                android:dropDownHeight="wrap_content"
+                android:dropDownVerticalOffset="8dp" />
 
             <!-- Save Button (Green) -->
             <LinearLayout
@@ -183,7 +167,7 @@
 
             <!-- Logout Button -->
             <LinearLayout
-                android:id="@+id/logout_button_layout"
+                android:id="@+id/logoutButton"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
                 android:layout_marginTop="20dp"

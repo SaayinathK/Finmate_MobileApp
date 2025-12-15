@@ -1,9 +1,9 @@
 package com.example.financetracker
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.example.financetracker.databinding.ActivityHomeBinding
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -19,7 +19,7 @@ class HomeActivity : AppCompatActivity() {
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 🔔 Setup notification channel
+        // 🔔 Create Notification Channel
         NotificationHelper.createNotificationChannel(this)
 
         // ✅ Check if user is logged in
@@ -31,39 +31,8 @@ class HomeActivity : AppCompatActivity() {
             return
         }
 
-        // ✅ Load budget and currency from correct SharedPreferences
-        val prefs = getSharedPreferences("FinMatePrefs", MODE_PRIVATE)
-        val budgetLimit = prefs.getFloat("budget_limit", 5000f).toDouble()
-        val currency = prefs.getString("currency", "LKR") ?: "LKR"
-
-        // 💼 Load saved transactions
-        val transactions = loadTransactions()
-
-        // 📊 Calculate totals
-        val income = transactions.filter { it.type == "Income" }.sumOf { it.amount }
-        val expense = transactions.filter { it.type == "Expense" }.sumOf { it.amount }.let { kotlin.math.abs(it) }
-        val balance = income - expense
-        val percentageUsed = if (budgetLimit > 0) ((expense / budgetLimit) * 100).toInt() else 0
-
-        // 🖥 Update UI
-        binding.balanceAmount.text = "$currency %.2f".format(balance)
-        binding.incomeAmount.text = "$currency %.2f".format(income)
-        binding.expenseAmount.text = "$currency %.2f".format(expense)
-
-        // ➕ Optionally show budget limit somewhere in your layout
-        // You must add a TextView like: android:id="@+id/budgetLimitText" in your XML
-        binding.budgetLimitText?.text = "Budget Limit: $currency %.2f".format(budgetLimit)
-
-        binding.budgetProgressBar.progress = percentageUsed
-        binding.budgetWarning.text = when {
-            percentageUsed >= 100 -> "⚠ Budget Exceeded"
-            percentageUsed >= 80 -> "⚠ Nearing Budget Limit"
-            else -> "Good Standing"
-        }
-
-        if (expense > budgetLimit) {
-            NotificationHelper.showBudgetExceededNotification(this)
-        }
+        // 🖥 Initial UI Update
+        refreshUI()
 
         // 🚀 Navigation Buttons
         binding.addTransactionButton.setOnClickListener {
@@ -82,21 +51,30 @@ class HomeActivity : AppCompatActivity() {
             startActivity(Intent(this, ExportImportActivity::class.java))
         }
 
-        // 🔄 Refresh
-        binding.refreshButton.setOnClickListener {
-            recreate()
-        }
 
         // 🧭 Bottom Navigation
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.home -> { startActivity(Intent(this, HomeActivity::class.java)); true }
-                R.id.history -> { startActivity(Intent(this, TransactionHistoryActivity::class.java)); true }
-                R.id.analysis -> { startActivity(Intent(this, CategoryAnalysisActivity::class.java)); true }
-                R.id.setting -> { startActivity(Intent(this, SettingsActivity::class.java)); true }
+                R.id.home -> {
+                    startActivity(Intent(this, HomeActivity::class.java)); true
+                }
+                R.id.history -> {
+                    startActivity(Intent(this, TransactionHistoryActivity::class.java)); true
+                }
+                R.id.analysis -> {
+                    startActivity(Intent(this, CategoryAnalysisActivity::class.java)); true
+                }
+                R.id.setting -> {
+                    startActivity(Intent(this, SettingsActivity::class.java)); true
+                }
                 else -> false
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshUI() // 🔁 Auto-refresh on resume
     }
 
     private fun loadTransactions(): List<Transaction> {
@@ -104,5 +82,50 @@ class HomeActivity : AppCompatActivity() {
         val json = prefs.getString(sharedKey, "[]")
         val type = object : TypeToken<List<Transaction>>() {}.type
         return gson.fromJson(json, type) ?: emptyList()
+    }
+
+    private fun refreshUI() {
+        val prefs = getSharedPreferences("FinMatePrefs", MODE_PRIVATE)
+        val budgetLimit = prefs.getFloat("budget_limit", 5000f).toDouble()
+        val currency = prefs.getString("currency", "LKR") ?: "LKR"
+        val transactions = loadTransactions()
+
+        val income = transactions.filter { it.type == "Income" }.sumOf { it.amount }
+        val expense = transactions.filter { it.type == "Expense" }.sumOf { it.amount }.let { kotlin.math.abs(it) }
+        val balance = income - expense
+        val percentageUsed = if (budgetLimit > 0) ((expense / budgetLimit) * 100).toInt() else 0
+
+        binding.balanceAmount.text = "$currency %.2f".format(balance)
+        binding.incomeAmount.text = "$currency %.2f".format(income)
+        binding.expenseAmount.text = "$currency %.2f".format(expense)
+        binding.budgetProgressBar.progress = percentageUsed
+        binding.budgetLimitText.text = "Budget Limit: $currency %.2f".format(budgetLimit)
+
+        // Set warning text and color with matching line
+        when {
+            percentageUsed >= 100 -> {
+                val red = ContextCompat.getColor(this, android.R.color.holo_red_dark)
+                binding.budgetWarning.text = "⚠ Budget Exceeded"
+                binding.budgetWarning.setTextColor(red)
+                binding.budgetProgressBar.setIndicatorColor(red)
+            }
+            percentageUsed >= 80 -> {
+                val orange = ContextCompat.getColor(this, android.R.color.holo_orange_dark)
+                binding.budgetWarning.text = "⚠ Nearing Budget Limit"
+                binding.budgetWarning.setTextColor(orange)
+                binding.budgetProgressBar.setIndicatorColor(orange)
+            }
+            else -> {
+                val green = ContextCompat.getColor(this, android.R.color.holo_green_dark)
+                binding.budgetWarning.text = "Good Standing"
+                binding.budgetWarning.setTextColor(green)
+                binding.budgetProgressBar.setIndicatorColor(green)
+            }
+        }
+
+        // 🔔 Notify if exceeded
+        if (expense > budgetLimit) {
+            NotificationHelper.showBudgetExceededNotification(this)
+        }
     }
 }
