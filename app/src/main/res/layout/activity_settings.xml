@@ -143,6 +143,7 @@
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp">
 
+<<<<<<< HEAD
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -210,6 +211,33 @@
                 android:layout_marginBottom="16dp"
                 android:background="@drawable/rounded_white_card"
                 android:gravity="center_vertical"
+=======
+            <AutoCompleteTextView
+                android:id="@+id/currencyInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="5dp"
+                android:background="@drawable/rounded_white_card"
+                android:hint="Select currency"
+                android:textColorHint="@color/light_gray"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:inputType="none"
+                android:dropDownHeight="wrap_content"
+                android:dropDownVerticalOffset="8dp" />
+
+            <!-- Save Button (Green) -->
+            <LinearLayout
+                android:id="@+id/saveButton"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="32dp"
+                android:background="@drawable/greengradient"
+                android:gravity="center"
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="8dp">

@@ -13,7 +13,47 @@
         android:id="@+id/headerInclude"
         android:layout_marginTop="10dp"
         android:layout_width="match_parent"
+<<<<<<< HEAD
         android:layout_height="wrap_content" />
+=======
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="0dp">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:background="@android:color/transparent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Dashboard"
+                        android:textColor="@color/blue_700"
+                        android:textSize="24sp"
+                        android:fontFamily="@font/inter_semibold"/>
+
+                </LinearLayout>
+
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
     <!-- Content -->
     <androidx.core.widget.NestedScrollView
@@ -102,7 +142,11 @@
                 <!-- Income -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
+<<<<<<< HEAD
                     android:layout_height="120dp"
+=======
+                    android:layout_height="100dp"
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     app:cardCornerRadius="16dp"
@@ -117,7 +161,12 @@
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:padding="16dp"
+<<<<<<< HEAD
                         android:gravity="center_horizontal">
+=======
+                        android:background="#E3F2FD"
+                        android:gravity="center">
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
                         <TextView
                             android:text="Income"
@@ -149,7 +198,11 @@
                 <!-- Expense -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
+<<<<<<< HEAD
                     android:layout_height="120dp"
+=======
+                    android:layout_height="100dp"
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     app:cardCornerRadius="16dp"
@@ -164,7 +217,12 @@
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:padding="16dp"
+<<<<<<< HEAD
                         android:gravity="center_horizontal">
+=======
+                        android:background="#FFEBEE"
+                        android:gravity="center">
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
                         <TextView
                             android:text="Expenses"
@@ -192,6 +250,7 @@
                         </HorizontalScrollView>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
+
             </LinearLayout>
 
 
@@ -241,6 +300,10 @@
                         app:trackColor="@android:color/darker_gray"
                         app:indicatorColor="@android:color/darker_gray" />
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
                     <TextView
                         android:id="@+id/budgetWarning"

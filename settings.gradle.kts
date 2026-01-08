@@ -1,27 +1,21 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()
         mavenCentral()
         gradlePluginPortal()
+        maven { url = uri("https://jitpack.io") } // 🔥 For libraries hosted on JitPack
     }
 }
+
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS) // ⚡ Best practice now
     repositories {
         google()
         mavenCentral()
-        maven {
-            url = uri("https://jitpack.io")
-        }
+        maven { url = uri("https://jitpack.io") } // 🔥 JitPack if you need extra libraries (like MPAndroidChart)
     }
-
-    rootProject.name = "Finance Tracker"
-    include(":app")
 }
- 
+
+rootProject.name = "FinanceTracker" // ✅ No spaces in project name - good convention
+
+include(":app") // ✅ Main App module

@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
+<<<<<<< HEAD
     tools:context=".activities.CategoryAnalysisActivity">
 
     <!-- Header -->
@@ -79,10 +80,31 @@
                 android:layout_marginTop="8dp" />
 
             <!-- Summary Section -->
+=======
+    tools:context=".CategoryAnalysisActivity">
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="24dp">
+
+            <!-- Header -->
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
             <LinearLayout
                 android:id="@+id/summarySection"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+<<<<<<< HEAD
                 android:layout_margin="16dp"
                 android:orientation="horizontal"
                 android:gravity="center"
@@ -218,6 +240,66 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
+=======
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="8dp"
+                android:layout_marginTop="24dp">
+
+                <ImageView
+                    android:id="@+id/backArrow"
+                    android:layout_width="44dp"
+                    android:layout_height="35dp"
+                    android:src="@drawable/ic_back_arrow"
+                    android:contentDescription="Back" />
+
+                <TextView
+                    android:id="@+id/analysisTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:text="Category Analysis"
+                    android:textColor="@color/blue_700"
+                    android:textSize="22sp"
+                    android:fontFamily="@font/inter_semibold" />
+
+                <AutoCompleteTextView
+                    android:id="@+id/monthInput"
+                    android:layout_width="100dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/spinner_background"
+                    android:hint="Month"
+                    android:paddingHorizontal="10dp"
+                    android:textColor="@android:color/black"
+                    android:textSize="14sp" />
+
+                <AutoCompleteTextView
+                    android:id="@+id/yearInput"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/spinner_background"
+                    android:hint="Year"
+                    android:paddingHorizontal="10dp"
+                    android:textColor="@android:color/black"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Pie Chart Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Expenses by Category"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="16dp" />
+
+            <!-- Pie Chart -->
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -257,6 +339,7 @@
                     android:padding="12dp"
                     android:background="@color/white"/>
             </com.google.android.material.card.MaterialCardView>
+<<<<<<< HEAD
 
             <!-- Line Chart Label -->
             <TextView
@@ -285,14 +368,86 @@
             </com.google.android.material.card.MaterialCardView>
 
 
+=======
+
+            <!-- Line Chart Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monthly Trend Analysis"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp" />
+
+            <!-- Monthly Line Chart -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp">
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/monthlyChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:padding="12dp"
+                    android:background="@color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Summary Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monthly Summary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp" />
+
+            <!-- Summary Section -->
+            <LinearLayout
+                android:id="@+id/summarySection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:weightSum="3">
+
+                <!-- Cards: Income, Expense, Balance -->
+                <!-- Same card structure as before -->
+                <!-- (Reuse your income/expense/balance cards here) -->
+            </LinearLayout>
+
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
         </LinearLayout>
     </ScrollView>
 
     <!-- Bottom Navigation -->
+<<<<<<< HEAD
     <com.example.financetracker.ui.BottomNavBar
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent" />
+=======
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_marginBottom="0dp"
+        android:background="@drawable/nav_background"
+        android:elevation="8dp"
+        app:itemIconTint="@color/white"
+        app:itemTextColor="@color/white"
+        app:labelVisibilityMode="labeled"
+        app:itemTextAppearanceActive="@style/TextAppearance.AppCompat.Caption"
+        app:itemTextAppearanceInactive="@style/TextAppearance.AppCompat.Caption"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/nav_bottom" />
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
 </androidx.constraintlayout.widget.ConstraintLayout>

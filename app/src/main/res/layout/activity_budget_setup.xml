@@ -64,7 +64,10 @@
                 android:textColor="@color/black"
                 android:textSize="16sp" />
 
+<<<<<<< HEAD
             <!-- Currency Input -->
+=======
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
             <AutoCompleteTextView
                 android:id="@+id/currencyInput"
                 android:layout_width="match_parent"
@@ -76,7 +79,14 @@
                 android:paddingHorizontal="16dp"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+<<<<<<< HEAD
                 android:inputType="none" />
+=======
+                android:inputType="none"
+                android:dropDownHeight="wrap_content"
+                android:dropDownVerticalOffset="8dp" />
+
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
 
 
