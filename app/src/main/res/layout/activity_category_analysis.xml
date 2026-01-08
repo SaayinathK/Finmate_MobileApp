@@ -8,13 +8,57 @@
     android:background="@color/white"
     tools:context=".activities.CategoryAnalysisActivity">
 
+    <!-- Header -->
+    <include
+        android:id="@+id/headerInclude"
+        layout="@layout/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 📅 Date Filter Row -->
+    <LinearLayout
+        android:id="@+id/dateFilterRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginStart="10dp"
+        android:gravity="center"
+        android:layout_marginTop="5dp"
+        app:layout_constraintTop_toBottomOf="@id/headerInclude"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/btnSelectDateRange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/blue_500"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/Year_Month"
+            android:textColor="@android:color/white" />
+
+        <TextView
+            android:id="@+id/textSelectedMonthYear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="April 2025"
+            android:textColor="@color/blue_700"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <!-- Scrollable Content -->
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@id/dateFilterRow"
         app:layout_constraintBottom_toTopOf="@id/bottomNav">
 
         <LinearLayout
@@ -22,145 +66,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="24dp">
-
-            <!-- Header -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="8dp"
-                android:layout_marginTop="24dp">
-
-                <ImageView
-                    android:id="@+id/backArrow"
-                    android:layout_width="44dp"
-                    android:layout_height="35dp"
-                    android:src="@drawable/ic_back_arrow"
-                    android:contentDescription="Back" />
-
-                <TextView
-                    android:id="@+id/analysisTitle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:text="Category Analysis"
-                    android:textColor="@color/blue_700"
-                    android:textSize="22sp"
-                    android:fontFamily="@font/inter_semibold" />
-
-            </LinearLayout>
-
-            <!-- 📅 Date Range Row -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:layout_marginBottom="0dp">
-
-                <Button
-                    android:id="@+id/btnSelectDateRange"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@color/blue_500"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:text="@string/Year_Month"
-                    android:textColor="@android:color/white" />
-
-                <TextView
-                    android:id="@+id/textSelectedMonthYear"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="April 2025"
-                    android:textColor="@color/blue_700"
-                    android:textSize="25sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <!-- Pie Chart Label -->
-
-            <!-- Pie Chart -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="0dp"
-                android:text="Expenses by Category"
-                android:textColor="@android:color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp">
-                <com.github.mikephil.charting.charts.PieChart
-                    android:id="@+id/pieChart"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:padding="12dp"
-                    android:background="@color/white"/>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Bar Chart Label -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Income vs Expense by Category"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp" />
-
-            <!-- Bar Chart -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp">
-                <com.github.mikephil.charting.charts.BarChart
-                    android:id="@+id/barChart"
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:padding="12dp"
-                    android:background="@color/white"/>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Line Chart Label -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Monthly Trend Analysis"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp" />
-
-            <!-- Monthly Line Chart -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="6dp">
-                <com.github.mikephil.charting.charts.LineChart
-                    android:id="@+id/monthlyChart"
-                    android:layout_width="match_parent"
-                    android:layout_height="220dp"
-                    android:padding="12dp"
-                    android:background="@color/white"/>
-            </com.google.android.material.card.MaterialCardView>
 
             <!-- Summary Label -->
             <TextView
@@ -301,6 +206,85 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
+
+            <!-- Pie Chart -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="0dp"
+                android:text="Expenses by Category"
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp">
+                <com.github.mikephil.charting.charts.PieChart
+                    android:id="@+id/pieChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:padding="12dp"
+                    android:background="@color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Bar Chart Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Income vs Expense by Category"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp" />
+
+            <!-- Bar Chart -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp">
+                <com.github.mikephil.charting.charts.BarChart
+                    android:id="@+id/barChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:padding="12dp"
+                    android:background="@color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Line Chart Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Monthly Trend Analysis"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp" />
+
+            <!-- Monthly Line Chart -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="6dp">
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/monthlyChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp"
+                    android:padding="12dp"
+                    android:background="@color/white"/>
+            </com.google.android.material.card.MaterialCardView>
+
+
         </LinearLayout>
     </ScrollView>
 

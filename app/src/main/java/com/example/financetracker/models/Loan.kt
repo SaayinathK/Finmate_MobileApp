@@ -8,7 +8,7 @@ data class Loan(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val personName: String,
     val amount: Double,
-    val type: String,   // "RECEIVE" or "PAY"
+    val type: String,   // "RECEIVED" (income) or "GIVVEN" (expense)
     val note: String? = null,
     val date: Long = System.currentTimeMillis()
-)
+) : java.io.Serializable

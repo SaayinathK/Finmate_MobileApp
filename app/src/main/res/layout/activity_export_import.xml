@@ -24,33 +24,12 @@
             android:gravity="center_horizontal"
             android:paddingBottom="24dp">
 
-            <!-- Title Row -->
-            <LinearLayout
+            <!-- Header -->
+            <include
+                layout="@layout/header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingEnd="16dp"
-                android:layout_marginTop="25dp"
-                android:layout_marginStart="16dp">
-
-                <ImageView
-                    android:id="@+id/backArrow"
-                    android:layout_width="44dp"
-                    android:layout_height="35dp"
-                    android:src="@drawable/ic_back_arrow"
-                    android:contentDescription="Back" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="40dp"
-                    android:fontFamily="@font/inter_semibold"
-                    android:text="Export / Import Data"
-                    android:textSize="25sp"
-                    android:textStyle="bold"
-                    android:textColor="#1976D2"/>
-            </LinearLayout>
+                android:layout_marginTop="10dp" />
 
             <!-- Export XLSX Button -->
             <LinearLayout

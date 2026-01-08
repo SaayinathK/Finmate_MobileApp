@@ -34,6 +34,15 @@ class BudgetSetupActivity : AppCompatActivity() {
         binding = ActivityBudgetSetupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Set header title and back button
+        val headerTitle = findViewById<android.widget.TextView>(R.id.headerTitle)
+        headerTitle?.text = "Set Monthly Budget"
+        val backArrow = findViewById<android.view.View>(R.id.backArrow)
+        backArrow?.setOnClickListener {
+            startActivity(Intent(this, HomeActivity::class.java))
+            finish()
+        }
+
         setupDropdowns()
         setupListeners()
         com.example.financetracker.ui.BottomNavHelper.attach(this)
@@ -64,10 +73,7 @@ class BudgetSetupActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.saveButton.setOnClickListener { saveBudget() }
-        binding.backArrow.setOnClickListener {
-            startActivity(Intent(this, HomeActivity::class.java))
-            finish()
-        }
+        // Back button handled by header include
 
         // Month, Year, and Currency Selection
         binding.monthInput.setOnItemClickListener { _, _, position, _ ->

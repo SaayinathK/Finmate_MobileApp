@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+import android.content.SharedPreferences
+
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
@@ -31,13 +33,37 @@ class SettingsActivity : AppCompatActivity() {
     private val budgetDao by lazy { db.budgetDao() }
     private val currencyOptions = listOf("LKR", "USD", "EUR", "INR", "GBP", "AUD")
 
+    private lateinit var sharedPrefs: SharedPreferences
+    private val PREFS_NAME = "finmate_settings"
+    private val KEY_NOTIFICATIONS_ENABLED = "notifications_enabled"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        sharedPrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+
+        // Setup header (back button and title)
+        val backArrow = findViewById<android.widget.ImageView>(com.example.financetracker.R.id.backArrow)
+        val headerTitle = findViewById<android.widget.TextView>(com.example.financetracker.R.id.headerTitle)
+        headerTitle?.text = "Settings"
+        backArrow?.setOnClickListener { finish() }
+
         binding.exportImportButton.setOnClickListener {
             startActivity(Intent(this, ExportImportActivity::class.java))
+        }
+
+        // Setup notification switch using view binding
+        binding.notificationSwitch.isChecked = isNotificationsEnabled()
+        binding.notificationSwitch.setOnCheckedChangeListener { _, isChecked ->
+            setNotificationsEnabled(isChecked)
+            if (isChecked) {
+                NotificationHelper.createNotificationChannel(this)
+                Toast.makeText(this, "Notifications enabled", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Notifications disabled", Toast.LENGTH_SHORT).show()
+            }
         }
 
         NotificationHelper.createNotificationChannel(this)
@@ -46,6 +72,14 @@ class SettingsActivity : AppCompatActivity() {
         setupCurrencyDropdown()
         setupListeners()
         com.example.financetracker.ui.BottomNavHelper.attach(this)
+    }
+
+    private fun isNotificationsEnabled(): Boolean {
+        return sharedPrefs.getBoolean(KEY_NOTIFICATIONS_ENABLED, true)
+    }
+
+    private fun setNotificationsEnabled(enabled: Boolean) {
+        sharedPrefs.edit().putBoolean(KEY_NOTIFICATIONS_ENABLED, enabled).apply()
     }
 
     /** Load user profile and initialize UI */
@@ -78,6 +112,7 @@ class SettingsActivity : AppCompatActivity() {
         binding.resetButton.setOnClickListener { showPasswordConfirmationDialog() }
         binding.resetPasswordButton.setOnClickListener { showResetPasswordDialog() }
         binding.togglePasswordVisibility.setOnClickListener { togglePasswordVisibility() }
+        // Notification switch handled in onCreate
     }
 
     /** Toggle password visibility */

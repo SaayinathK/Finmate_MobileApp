@@ -46,7 +46,12 @@ class ExportImportActivity : AppCompatActivity() {
 
         db = AppDatabase.getDatabase(this)
 
-        binding.backArrow.setOnClickListener {
+
+        // Setup header (back button and title)
+        val backArrow = findViewById<android.widget.ImageView>(com.example.financetracker.R.id.backArrow)
+        val headerTitle = findViewById<android.widget.TextView>(com.example.financetracker.R.id.headerTitle)
+        headerTitle?.text = "Export / Import Data"
+        backArrow?.setOnClickListener {
             onBackPressedDispatcher.onBackPressed()
         }
 

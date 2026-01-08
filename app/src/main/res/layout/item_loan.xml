@@ -59,13 +59,35 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/actionButton"
+                android:id="@+id/receiveButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Action"
+                android:text="Receive"
                 android:textSize="14sp"
                 android:backgroundTint="#0288D1"
+                android:textColor="@android:color/white"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/payButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Pay"
+                android:textSize="14sp"
+                android:backgroundTint="#388E3C"
+                android:textColor="@android:color/white"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/editButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Edit"
+                android:textSize="14sp"
+                android:backgroundTint="#FFA000"
                 android:textColor="@android:color/white"
                 android:layout_marginEnd="8dp"/>
 

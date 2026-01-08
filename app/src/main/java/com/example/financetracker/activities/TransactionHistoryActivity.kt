@@ -43,7 +43,12 @@ class TransactionHistoryActivity : AppCompatActivity() {
         binding = ActivityTransactionHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.backArrow.setOnClickListener {
+
+        // Setup header (back button and title)
+        val backArrow = findViewById<android.widget.ImageView>(com.example.financetracker.R.id.backArrow)
+        val headerTitle = findViewById<android.widget.TextView>(com.example.financetracker.R.id.headerTitle)
+        headerTitle?.text = "Transaction History"
+        backArrow?.setOnClickListener {
             startActivity(Intent(this, HomeActivity::class.java))
             finish()
         }
