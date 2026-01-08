@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "815754949091",
+    "project_id": "finmate-d8914",
+    "storage_bucket": "finmate-d8914.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:815754949091:android:c1dd59f964a9ce02ed30d6",
+        "android_client_info": {
+          "package_name": "com.example.financetracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAG0bFSohhwKqveSPWRqavgsntNQokoMo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

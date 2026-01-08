@@ -60,6 +60,12 @@ class HomeActivity : AppCompatActivity() {
             startActivity(Intent(this, ExportImportActivity::class.java))
         }
 
+        // Setup header (title only, hide back button for Home)
+        val headerTitle = findViewById<android.widget.TextView>(com.example.financetracker.R.id.headerTitle)
+        val backArrow = findViewById<android.widget.ImageView>(com.example.financetracker.R.id.backArrow)
+        headerTitle?.text = "Dashboard"
+        backArrow?.visibility = android.view.View.GONE
+
         // Attach centralized bottom navigation behavior when present
         com.example.financetracker.ui.BottomNavHelper.attach(this)
     }

@@ -13,7 +13,11 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintTop_toTopOf="parent"
+<<<<<<< HEAD
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
+=======
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -24,14 +28,18 @@
             android:gravity="center_horizontal"
             android:paddingBottom="24dp">
 
-            <!-- Title Row -->
-            <LinearLayout
+            <!-- Header -->
+            <include
+                layout="@layout/header"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+<<<<<<< HEAD
+                android:layout_marginTop="10dp" />
+=======
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:paddingEnd="16dp"
-                android:layout_marginTop="25dp"
+                android:layout_marginTop="24dp"
                 android:layout_marginStart="16dp">
 
                 <ImageView
@@ -51,6 +59,7 @@
                     android:textStyle="bold"
                     android:textColor="#1976D2"/>
             </LinearLayout>
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
             <!-- Export XLSX Button -->
             <LinearLayout
@@ -147,6 +156,7 @@
     </ScrollView>
 
     <!-- Bottom Navigation -->
+<<<<<<< HEAD
     <com.example.financetracker.ui.BottomNavBar
         android:id="@+id/bottomNav"
         android:layout_width="0dp"
@@ -155,4 +165,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         />
+=======
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/nav_background"
+        app:menu="@menu/nav_bottom"
+        app:itemIconSize="28dp"
+        app:itemIconTint="@color/white"
+        app:itemTextColor="@color/white"
+        app:itemTextAppearanceActive="@style/TextAppearance.AppCompat.Caption"
+        app:itemTextAppearanceInactive="@style/TextAppearance.AppCompat.Caption"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:labelVisibilityMode="labeled" />
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 </androidx.constraintlayout.widget.ConstraintLayout>

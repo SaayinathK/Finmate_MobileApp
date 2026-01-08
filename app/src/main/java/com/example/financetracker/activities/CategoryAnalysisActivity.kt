@@ -42,11 +42,17 @@ class CategoryAnalysisActivity : AppCompatActivity() {
         db = AppDatabase.getDatabase(this)
         refreshAll()
 
+
         binding.btnSelectDateRange.setOnClickListener {
             showMonthYearDialog()
         }
 
-        binding.backArrow.setOnClickListener {
+        // Setup header (back button and title)
+        val header = findViewById<android.view.View>(com.example.financetracker.R.id.backArrow)?.parent as? android.view.View
+        val backArrow = findViewById<android.widget.ImageView>(com.example.financetracker.R.id.backArrow)
+        val headerTitle = findViewById<android.widget.TextView>(com.example.financetracker.R.id.headerTitle)
+        headerTitle?.text = "Category Analysis"
+        backArrow?.setOnClickListener {
             startActivity(Intent(this, HomeActivity::class.java))
             finish()
         }

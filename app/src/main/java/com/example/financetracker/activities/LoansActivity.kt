@@ -40,13 +40,20 @@ class LoansActivity : AppCompatActivity() {
         binding = ActivityLoansBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
+        // Setup header (back button and title)
+        val backArrow = findViewById<android.widget.ImageView>(com.example.financetracker.R.id.backArrow)
+        val headerTitle = findViewById<android.widget.TextView>(com.example.financetracker.R.id.headerTitle)
+        headerTitle?.text = "Loans / Debts"
+        backArrow?.setOnClickListener { finish() }
+
         // Attach standard bottom navigation if present in layout
         com.example.financetracker.ui.BottomNavHelper.attach(this)
 
         val database = AppDatabase.getDatabase(this)
         loanDao = database.loanDao()
 
-        // Set up pager with tabs: All | To Receive | To Pay
+        // Set up pager with tabs: All |Received | Givven
         val pagerAdapter = LoansPagerAdapter(this)
         val viewPager = binding.viewPager
         viewPager.adapter = pagerAdapter
@@ -56,8 +63,8 @@ class LoansActivity : AppCompatActivity() {
         TabLayoutMediator(binding.filterTabLayout, viewPager) { tab, position ->
             tab.text = when (position) {
                 0 -> "All"
-                1 -> "To Receive"
-                else -> "To Pay"
+                1 -> "Received"
+                else -> "Givven"
             }
         }.attach()
 

@@ -6,7 +6,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.financetracker.fragments.LoansListFragment
 
 class LoansPagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(activity) {
-    private val modes = listOf("ALL", "RECEIVE", "PAY")
+    private val modes = listOf("ALL", "RECEIVED", "GIVVEN")
     private val fragments = ArrayList<LoansListFragment?>(modes.size)
 
     init {
@@ -22,8 +22,14 @@ class LoansPagerAdapter(activity: AppCompatActivity) : FragmentStateAdapter(acti
     }
 
     fun setLoans(loans: List<com.example.financetracker.models.Loan>) {
-        for (f in fragments) {
-            f?.setLoans(loans)
+        for ((i, f) in fragments.withIndex()) {
+            val filteredLoans = when (modes[i]) {
+                "ALL" -> loans
+                "RECEIVED" -> loans.filter { it.type == "RECEIVED" }
+                "GIVVEN" -> loans.filter { it.type == "GIVVEN" }
+                else -> loans
+            }
+            f?.setLoans(filteredLoans)
         }
     }
 }

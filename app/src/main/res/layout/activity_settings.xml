@@ -8,44 +8,24 @@
     android:background="#FFFFFF"
     tools:context=".activities.SettingsActivity">
 
-    <!-- Back Button -->
-    <ImageView
-        android:id="@+id/backArrow"
-        android:layout_width="44dp"
-        android:layout_height="35dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="35dp"
-        android:contentDescription="Back"
-        android:src="@drawable/ic_back_arrow"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Title -->
-
-    <!-- Main ScrollView -->
-
-    <TextView
-        android:id="@+id/settingsTitle"
-        android:layout_width="271dp"
-        android:layout_height="34dp"
-        android:fontFamily="@font/inter_semibold"
-        android:text="Settings"
-        android:textColor="#1E88E5"
-        android:textSize="25sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/settingsScrollView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.37"
-        app:layout_constraintStart_toEndOf="@+id/backArrow"
+    <!-- Header -->
+    <include
+        android:id="@+id/headerInclude"
+        layout="@layout/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.98" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <ScrollView
         android:id="@+id/settingsScrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:padding="16dp"
-        app:layout_constraintTop_toBottomOf="@id/backArrow"
+        app:layout_constraintTop_toBottomOf="@id/headerInclude"
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -163,6 +143,7 @@
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp">
 
+<<<<<<< HEAD
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -221,6 +202,64 @@
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
+
+            <!-- Notification Toggle -->
+            <LinearLayout
+                android:id="@+id/notificationToggleLayout"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/rounded_white_card"
+                android:gravity="center_vertical"
+=======
+            <AutoCompleteTextView
+                android:id="@+id/currencyInput"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="5dp"
+                android:background="@drawable/rounded_white_card"
+                android:hint="Select currency"
+                android:textColorHint="@color/light_gray"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:inputType="none"
+                android:dropDownHeight="wrap_content"
+                android:dropDownVerticalOffset="8dp" />
+
+            <!-- Save Button (Green) -->
+            <LinearLayout
+                android:id="@+id/saveButton"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="32dp"
+                android:background="@drawable/greengradient"
+                android:gravity="center"
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp">
+
+                <TextView
+                    android:id="@+id/tv_notification"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/inter_semibold"
+                    android:text="Notifications"
+                    android:textColor="@color/blue_500"
+                    android:textSize="20sp" />
+
+                <Switch
+                    android:id="@+id/notificationSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:thumbTint="@color/blue_500"
+                    android:trackTint="@color/light_gray" />
+            </LinearLayout>
 
             <!-- Export/Import Button -->
             <LinearLayout

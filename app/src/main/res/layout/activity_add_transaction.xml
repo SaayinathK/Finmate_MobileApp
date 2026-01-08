@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="20dp"
     android:background="#FFFFFF">
 
     <!-- ScrollView for content -->
@@ -11,7 +12,11 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintTop_toTopOf="parent"
+<<<<<<< HEAD
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
+=======
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -21,13 +26,16 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Back Button and Title Layout -->
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_marginTop="15dp"
+            <!-- Reusable Header Include -->
+            <include
+                layout="@layout/header"
+                android:id="@+id/headerInclude"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp" />
 
+<<<<<<< HEAD
+=======
                 <ImageView
                     android:id="@+id/backArrow"
                     android:layout_width="44dp"
@@ -48,12 +56,13 @@
                     android:layout_marginBottom="16dp" />
             </LinearLayout>
 
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
             <RadioGroup
                 android:id="@+id/typeRadioGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="30dp"
                 android:layout_marginBottom="16dp">
 
                 <RadioButton
@@ -71,11 +80,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/inter_semibold"
+<<<<<<< HEAD
                     android:text="Expense"
                     android:textColor="#000000"
                     android:textSize="17sp" />
 
                 </RadioGroup>
+=======
+                    android:textSize="17sp"
+                    android:textColor="#000000"
+                    android:layout_marginStart="32dp" />
+            </RadioGroup>
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
             <EditText
                 android:id="@+id/titleEditText"
@@ -86,7 +102,7 @@
                 android:padding="12dp"
                 android:textColor="#000000"
                 android:textColorHint="#999999"
-                android:layout_marginTop="22dp" />
+                android:layout_marginTop="0dp" />
 
             <EditText
                 android:id="@+id/amountEditText"
@@ -126,6 +142,7 @@
                 android:textColorHint="#000000"
                 android:textSize="17sp"
                 android:textColor="#999999" />
+<<<<<<< HEAD
 
             <!-- Loan creation options -->
             <CheckBox
@@ -154,6 +171,8 @@
                 android:hint="Loan Action (To Receive / To Pay)"
                 android:visibility="gone"
                 android:padding="12dp" />
+=======
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -211,15 +230,19 @@
     </ScrollView>
 
     <!-- Bottom Navigation Bar -->
-    <include
+    <!-- 🔽 Bottom Navigation Bar -->
+    <com.example.financetracker.ui.BottomNavBar
         android:id="@+id/bottomNav"
-        layout="@layout/nav_bottom"
         android:elevation="8dp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+<<<<<<< HEAD
         />
+=======
+        app:labelVisibilityMode="labeled" />
+>>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,4 +1,7 @@
 package com.example.financetracker.fragments
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -59,22 +62,45 @@ class LoansListFragment : Fragment() {
                 onPay = { summary -> showPersonActionDialog(summary, true) }
             )
             binding.recycler.adapter = accountAdapter
-        } else {
-            loanAdapter = LoanAdapter(emptyList(), onAction = { loan ->
-                showSettleAmountDialog(loan)
-            }, onDelete = { loan ->
-                // confirm and delete
-                androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                    .setTitle("Delete loan")
-                    .setMessage("Are you sure you want to delete this loan entry?")
-                    .setPositiveButton("Delete") { _, _ ->
-                        lifecycleScope.launch {
-                            AppDatabase.getDatabase(requireContext()).loanDao().deleteLoanById(loan.id)
+        } else if (mode == "RECEIVED") {
+            loanAdapter = LoanAdapter(
+                emptyList(),
+                section = "RECEIVED",
+                onPay = { loan -> showSettleAmountDialog(loan) },
+                onEdit = { loan -> showEditLoanDialog(loan) },
+                onDelete = { loan ->
+                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                        .setTitle("Delete loan")
+                        .setMessage("Are you sure you want to delete this loan entry?")
+                        .setPositiveButton("Delete") { _, _ ->
+                            lifecycleScope.launch {
+                                AppDatabase.getDatabase(requireContext()).loanDao().deleteLoanById(loan.id)
+                            }
                         }
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .show()
-            })
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+            )
+            binding.recycler.adapter = loanAdapter
+        } else if (mode == "GIVVEN") {
+            loanAdapter = LoanAdapter(
+                emptyList(),
+                section = "GIVVEN",
+                onReceive = { loan -> showSettleAmountDialog(loan) },
+                onEdit = { loan -> showEditLoanDialog(loan) },
+                onDelete = { loan ->
+                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                        .setTitle("Delete loan")
+                        .setMessage("Are you sure you want to delete this loan entry?")
+                        .setPositiveButton("Delete") { _, _ ->
+                            lifecycleScope.launch {
+                                AppDatabase.getDatabase(requireContext()).loanDao().deleteLoanById(loan.id)
+                            }
+                        }
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                }
+            )
             binding.recycler.adapter = loanAdapter
         }
     }
@@ -82,57 +108,94 @@ class LoansListFragment : Fragment() {
     fun setLoans(loans: List<Loan>) {
         if (!isAdded) return
         when (mode) {
-            "RECEIVE" -> {
-                val list = loans.filter { it.type == "RECEIVE" }
-                loanAdapter = LoanAdapter(list, onAction = { loan ->
-                    showSettleAmountDialog(loan)
-                }, onDelete = { loan ->
-                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                        .setTitle("Delete loan")
-                        .setMessage("Are you sure you want to delete this loan entry?")
-                        .setPositiveButton("Delete") { _, _ ->
-                            lifecycleScope.launch {
-                                AppDatabase.getDatabase(requireContext()).loanDao().deleteLoanById(loan.id)
-                            }
-                        }
-                        .setNegativeButton("Cancel", null)
-                        .show()
-                })
-                binding.recycler.adapter = loanAdapter
-            }
-            "PAY" -> {
-                val list = loans.filter { it.type == "PAY" }
-                loanAdapter = LoanAdapter(list, onAction = { loan ->
-                    showSettleAmountDialog(loan)
-                }, onDelete = { loan ->
-                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                        .setTitle("Delete loan")
-                        .setMessage("Are you sure you want to delete this loan entry?")
-                        .setPositiveButton("Delete") { _, _ ->
-                            lifecycleScope.launch {
-                                AppDatabase.getDatabase(requireContext()).loanDao().deleteLoanById(loan.id)
-                            }
-                        }
-                        .setNegativeButton("Cancel", null)
-                        .show()
-                })
-                binding.recycler.adapter = loanAdapter
-            }
-            else -> {
+            "ALL" -> {
                 // Aggregate per person
                 val grouped = loans.groupBy { it.personName }
                 val summaries = grouped.map { (person, items) ->
-                    val receive = items.filter { it.type == "RECEIVE" }.sumOf { it.amount }
-                    val pay = items.filter { it.type == "PAY" }.sumOf { it.amount }
-                    com.example.financetracker.models.AccountSummary(person, receive, pay)
+                    val receive = items.filter { it.type == "RECEIVED" }.sumOf { it.amount }
+                    val pay = items.filter { it.type == "GIVVEN" }.sumOf { it.amount }
+                    val lastModified = items.maxOfOrNull { it.date } ?: 0L
+                    Pair(lastModified, com.example.financetracker.models.AccountSummary(person, receive, pay))
                 }
-                accountAdapter = AccountSummaryAdapter(summaries,
+                val sortedSummaries = summaries.sortedByDescending { it.first }.map { it.second }
+                accountAdapter = AccountSummaryAdapter(sortedSummaries,
                     onReceive = { summary -> showPersonActionDialog(summary, false) },
                     onPay = { summary -> showPersonActionDialog(summary, true) }
                 )
                 binding.recycler.adapter = accountAdapter
             }
+            "RECEIVED" -> {
+                val list = loans.filter { it.type == "RECEIVED" }
+                    .sortedByDescending { it.date }
+                loanAdapter = LoanAdapter(
+                    list,
+                    section = "RECEIVED",
+                    onPay = { loan -> showSettleAmountDialog(loan) },
+                    onEdit = { loan -> showEditLoanDialog(loan) },
+                    onDelete = { loan ->
+                        // Step 1: Confirm deletion
+                        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                            .setTitle("Delete loan")
+                            .setMessage("Are you sure you want to delete this loan entry? This will also delete the related transaction.")
+                            .setPositiveButton("Delete") { _, _ ->
+                                // Step 2: Confirm again
+                                androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                                    .setTitle("Confirm Delete")
+                                    .setMessage("This action cannot be undone. Do you really want to delete?")
+                                    .setPositiveButton("Yes, Delete") { _, _ ->
+                                        lifecycleScope.launch {
+                                            val db = AppDatabase.getDatabase(requireContext())
+                                            db.loanDao().deleteLoanById(loan.id)
+                                            // Also delete related transaction
+                                            val txList = db.transactionDao().getAllTransactionsRaw().filter {
+                                                it.title == loan.personName &&
+                                                Math.abs(it.amount) == Math.abs(loan.amount) &&
+                                                it.category == "Loans"
+                                            }
+                                            for (tx in txList) {
+                                                db.transactionDao().deleteTransaction(tx)
+                                            }
+                                        }
+                                    }
+                                    .setNegativeButton("Cancel", null)
+                                    .show()
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+                )
+                binding.recycler.adapter = loanAdapter
+            }
+            "GIVVEN" -> {
+                val list = loans.filter { it.type == "GIVVEN" }
+                    .sortedByDescending { it.date }
+                loanAdapter = LoanAdapter(
+                    list,
+                    section = "GIVVEN",
+                    onReceive = { loan -> showSettleAmountDialog(loan) },
+                    onEdit = { loan -> showEditLoanDialog(loan) },
+                    onDelete = { loan ->
+                        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                            .setTitle("Delete loan")
+                            .setMessage("Are you sure you want to delete this loan entry?")
+                            .setPositiveButton("Delete") { _, _ ->
+                                lifecycleScope.launch {
+                                    AppDatabase.getDatabase(requireContext()).loanDao().deleteLoanById(loan.id)
+                                }
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+                )
+                binding.recycler.adapter = loanAdapter
+            }
         }
+    }
+
+    // Dummy edit dialog for now
+    private fun showEditLoanDialog(loan: Loan) {
+        val dialog = com.example.financetracker.dialogs.AddLoanDialog.newInstance(loan)
+        dialog.show(parentFragmentManager, "EditLoanDialog")
     }
 
     private fun showPersonActionDialog(summary: com.example.financetracker.models.AccountSummary, isPay: Boolean) {
@@ -141,8 +204,10 @@ class LoansListFragment : Fragment() {
         val defaultVal = if (isPay) summary.totalPay else summary.totalReceive
         edit.setText(String.format(Locale.getDefault(), "%.2f", defaultVal))
 
+        val dialogTitle = if (isPay) "Pay (Loan Paid)" else "Receive (Loan Cut)"
+
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(if (isPay) "Pay ${summary.personName}" else "Receive ${summary.personName}")
+            .setTitle(dialogTitle)
             .setView(edit)
             .setPositiveButton("Apply") { _, _ ->
                 val entered = edit.text.toString().trim()
@@ -157,18 +222,45 @@ class LoansListFragment : Fragment() {
                     val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
                     val dateStr = sdf.format(Date())
 
-                    val finalAmount = if (isPay) -amt else amt
-                    val type = if (isPay) "Expense" else "Income"
+                    val (finalAmount, txType, txTitle) = if (isPay) {
+                        // Pay: Expense (reduces net)
+                        Triple(-amt, "Expense", "${summary.personName}(Loan settlement)")
+                    } else {
+                        // Receive: Income (increases net)
+                        Triple(amt, "Income", "${summary.personName}(Loan cut)")
+                    }
 
                     val tx = Transaction(
                         id = 0,
-                        title = if (isPay) "Pay - ${summary.personName}" else "Receive - ${summary.personName}",
+                        title = txTitle,
                         amount = finalAmount,
                         category = "Loan",
                         date = dateStr,
-                        type = type
+                        type = txType
                     )
                     db.transactionDao().insertTransaction(tx)
+
+                    // Update the loan record for this person
+                    val allLoans = db.loanDao().getAllLoans().first()
+                    val loansForPerson = allLoans.filter { it.personName == summary.personName }
+                    val totalLoanAmount = loansForPerson.sumOf { loan -> loan.amount }
+                    val newAmount = if (isPay) totalLoanAmount - amt else totalLoanAmount + amt
+                    // Remove all old loans for this person
+                    for (loan in loansForPerson) {
+                        db.loanDao().deleteLoanById(loan.id)
+                    }
+                    // Add a new loan record with updated amount if not zero
+                    if (kotlin.math.abs(newAmount) > 0.0001) {
+                        val newLoan = Loan(
+                            id = 0,
+                            personName = summary.personName,
+                            amount = newAmount,
+                            type = if (newAmount >= 0) "RECEIVED" else "GIVVEN",
+                            date = System.currentTimeMillis()
+                        )
+                        db.loanDao().insertLoan(newLoan)
+                    }
+                    // Parent activity's collector will update the UI
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -180,13 +272,24 @@ class LoansListFragment : Fragment() {
         edit.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
         edit.setText(loan.amount.toString())
 
+        val isPay = when (loan.type) {
+            "RECEIVED" -> true   // Paying back a received loan (reduces net)
+            "GIVVEN" -> false    // Receiving back a given loan (increases net)
+            else -> false
+        }
+        val dialogTitle = when (loan.type) {
+            "RECEIVED" -> "Pay (Loan Paid)"
+            "GIVVEN" -> "Receive (Loan Cut)"
+            else -> "Settle Loan"
+        }
+
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Settle ${if (loan.type == "PAY") "Paid" else "Received"}")
+            .setTitle(dialogTitle)
             .setView(edit)
             .setPositiveButton("Apply") { _, _ ->
                 val entered = edit.text.toString().trim()
-                val paid = entered.toDoubleOrNull()
-                if (paid == null || paid <= 0.0) {
+                val amt = entered.toDoubleOrNull()
+                if (amt == null || amt <= 0.0) {
                     Toast.makeText(requireContext(), "Enter a valid amount", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
@@ -196,17 +299,17 @@ class LoansListFragment : Fragment() {
                     val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
                     val dateStr = sdf.format(Date())
 
-                    val (finalAmount, txType) = if (loan.type == "PAY") {
-                        // To Pay settlement -> Expense (negative amount)
-                        Pair(-paid, "Expense")
+                    val (finalAmount, txType, txTitle) = if (isPay) {
+                        // Paying a received loan: Expense (reduces net)
+                        Triple(-amt, "Expense", "Loan paid - ${loan.personName}")
                     } else {
-                        // To Receive settlement -> Income (positive amount)
-                        Pair(paid, "Income")
+                        // Receiving a given loan: Income (increases net)
+                        Triple(amt, "Income", "Loan received - ${loan.personName}")
                     }
 
                     val tx = Transaction(
                         id = 0,
-                        title = "Loan settlement - ${loan.personName}",
+                        title = txTitle,
                         amount = finalAmount,
                         category = "Loan",
                         date = dateStr,
@@ -214,13 +317,15 @@ class LoansListFragment : Fragment() {
                     )
                     db.transactionDao().insertTransaction(tx)
 
-                    // If paid covers full loan amount (or more), delete; otherwise reduce loan amount
-                    if (paid >= loan.amount - 0.0001) {
+                    // If paid/received covers full loan amount (or more), delete; otherwise reduce loan amount
+                    if (amt >= loan.amount - 0.0001) {
                         db.loanDao().deleteLoanById(loan.id)
                     } else {
-                        val updated = loan.copy(amount = loan.amount - paid)
+                        val updated = loan.copy(amount = loan.amount - amt)
                         db.loanDao().updateLoan(updated)
                     }
+
+                    // No manual refresh here; parent activity will update fragment via collector
                 }
             }
             .setNegativeButton("Cancel", null)
