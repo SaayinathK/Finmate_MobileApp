@@ -12,11 +12,7 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintTop_toTopOf="parent"
-<<<<<<< HEAD
         app:layout_constraintBottom_toTopOf="@id/bottomNav"
-=======
-        app:layout_constraintBottom_toTopOf="@+id/bottomNavigation"
->>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -34,29 +30,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp" />
 
-<<<<<<< HEAD
-=======
-                <ImageView
-                    android:id="@+id/backArrow"
-                    android:layout_width="44dp"
-                    android:layout_height="35dp"
-                    android:contentDescription="Back"
-                    android:src="@drawable/ic_back_arrow"
-                    android:layout_marginEnd="8dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Add Transaction"
-                    android:textSize="25sp"
-                    android:textStyle="bold"
-                    android:fontFamily="@font/inter_semibold"
-                    android:textColor="#1976D2"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginBottom="16dp" />
-            </LinearLayout>
-
->>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
             <RadioGroup
                 android:id="@+id/typeRadioGroup"
                 android:layout_width="match_parent"
@@ -80,18 +53,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/inter_semibold"
-<<<<<<< HEAD
                     android:text="Expense"
                     android:textColor="#000000"
                     android:textSize="17sp" />
 
                 </RadioGroup>
-=======
-                    android:textSize="17sp"
-                    android:textColor="#000000"
-                    android:layout_marginStart="32dp" />
-            </RadioGroup>
->>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
             <EditText
                 android:id="@+id/titleEditText"
@@ -142,7 +108,6 @@
                 android:textColorHint="#000000"
                 android:textSize="17sp"
                 android:textColor="#999999" />
-<<<<<<< HEAD
 
             <!-- Loan creation options -->
             <CheckBox
@@ -171,8 +136,6 @@
                 android:hint="Loan Action (To Receive / To Pay)"
                 android:visibility="gone"
                 android:padding="12dp" />
-=======
->>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -239,10 +202,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-<<<<<<< HEAD
         />
-=======
-        app:labelVisibilityMode="labeled" />
->>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -23,12 +23,15 @@
 
             <ImageView
                 android:id="@+id/logoImage"
-                android:layout_width="match_parent"
-                android:layout_height="241dp"
+                android:layout_width="335dp"
+                android:layout_height="190dp"
                 android:contentDescription="App Logo"
-                android:src="@drawable/ic_app_logo_white"
+                android:src="@drawable/ic_app_logo_white1"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.644" />
 
             <ImageView
                 android:id="@+id/backArrow"
@@ -136,17 +139,10 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
-<<<<<<< HEAD
                 android:id="@+id/loginButton"
                 android:layout_width="320dp"
                 android:layout_height="58dp"
                 android:layout_marginTop="32dp"
-=======
-                android:id="@+id/signup_button"
-                android:layout_width="200dp"
-                android:layout_height="50dp"
-                android:layout_marginTop="15dp"
->>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
                 android:background="@drawable/gradient_button"
                 android:gravity="center"
                 android:orientation="horizontal"
@@ -171,46 +167,43 @@
             <!-- Google Sign-In Button -->
             <com.google.android.gms.common.SignInButton
                 android:id="@+id/googleSignInButton"
-                android:layout_width="200dp"
-                android:layout_height="50dp"
+                android:layout_width="320dp"
+                android:layout_height="58dp"
                 android:layout_marginTop="16dp"
                 android:backgroundTint="@color/white"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/signup_button" />
-
-            <TextView
-                android:id="@+id/login_prompt"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="150dp"
-                android:layout_marginTop="16dp"
-                android:text="Don't have an account?"
-                android:textColor="@color/light_gray"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toStartOf="@id/login_redirect_button"
-                app:layout_constraintStart_toStartOf="parent"
-<<<<<<< HEAD
-                app:layout_constraintTop_toBottomOf="@id/loginButton" />
-=======
-                app:layout_constraintTop_toBottomOf="@+id/googleSignInButton" />
->>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
+                app:layout_constraintTop_toBottomOf="@+id/loginButton" />
 
             <Button
                 android:id="@+id/login_redirect_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="0dp"
+                android:layout_marginEnd="36dp"
+                android:layout_marginBottom="48dp"
                 android:background="@android:color/transparent"
                 android:text="Sign-Up"
                 android:textColor="@color/gradient_end"
-                app:layout_constraintBottom_toBottomOf="@id/login_prompt"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/login_prompt"
-                app:layout_constraintTop_toTopOf="@id/login_prompt"
-                app:layout_constraintVertical_bias="0.448" />
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                android:id="@+id/login_prompt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="90dp"
+                android:layout_marginTop="28dp"
+                android:text="Don't have an account?"
+                android:textColor="@color/light_gray"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/login_redirect_button"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/googleSignInButton"
+                app:layout_constraintVertical_bias="0.0" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 </ScrollView>

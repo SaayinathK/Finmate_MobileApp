@@ -1,11 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-<<<<<<< HEAD
     id("kotlin-kapt") // Required for Room annotation processing
-=======
-    id("com.google.gms.google-services")
->>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
+
 }
 
 android {
@@ -78,7 +75,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
 
-<<<<<<< HEAD
     // Gson for JSON Serialization
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -94,7 +90,6 @@ dependencies {
     implementation("org.apache.poi:poi:5.2.3")
     implementation("org.apache.poi:poi-ooxml:5.2.3")
 
-=======
     // JSON
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -121,7 +116,6 @@ dependencies {
     // Java 8+
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.3")
 
->>>>>>> 4d2b1dc2a7003542a5242f5614b846d15b4a2e97
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
