@@ -22,15 +22,29 @@
 
         <ImageView
             android:id="@+id/logoImage"
-            android:layout_width="335dp"
-            android:layout_height="190dp"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:layout_marginStart="16dp"
             android:contentDescription="App Logo"
             android:src="@drawable/swallet_logo"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/signupGuide"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_max="190dp"
+            app:layout_constraintHorizontal_chainStyle="packed"
             app:layout_constraintVertical_bias="0.733" />
+
+        <com.example.financetracker.ui.WalletGuideView
+            android:id="@+id/signupGuide"
+            android:layout_width="128dp"
+            android:layout_height="160dp"
+            android:layout_marginEnd="16dp"
+            android:importantForAccessibility="no"
+            app:layout_constraintStart_toEndOf="@id/logoImage"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/logoImage"
+            app:layout_constraintBottom_toBottomOf="@id/logoImage" />
 
         <ImageView
             android:id="@+id/backArrow"

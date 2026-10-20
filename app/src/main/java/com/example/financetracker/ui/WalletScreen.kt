@@ -147,7 +147,28 @@ abstract class WalletScreen : AppCompatActivity() {
         setImageResource(resource); scaleType = ImageView.ScaleType.FIT_CENTER; contentDescription = null
         layoutParams = LinearLayout.LayoutParams(dp(width), dp(height))
     }
+    fun guide(gesture: WalletGuideView.Gesture, size: Int = 112) = WalletGuideView(this).apply {
+        this.gesture = gesture
+        layoutParams = LinearLayout.LayoutParams(dp(size), dp(size))
+    }
+    fun guideMessage(title: String, detail: String, gesture: WalletGuideView.Gesture, parent: LinearLayout = content) {
+        val panel = card(parent, softBlue)
+        val line = row()
+        line.addView(guide(gesture), LinearLayout.LayoutParams(dp(112), dp(112)).apply { marginEnd = dp(8) })
+        line.addView(column().apply {
+            addView(text(title, 17, ink, true))
+            if (detail.isNotBlank()) addView(text(detail, 13, muted))
+        }, LinearLayout.LayoutParams(0, -2, 1f))
+        panel.addView(line)
+    }
     fun emptyState(resource: Int, title: String, detail: String = "", parent: LinearLayout = content) {
+        val gesture = when (resource) {
+            R.drawable.art_wallet -> WalletGuideView.Gesture.WELCOME
+            R.drawable.art_checklist -> WalletGuideView.Gesture.PLAN
+            R.drawable.swallet_logo -> WalletGuideView.Gesture.ENCOURAGE
+            else -> null
+        }
+        if (gesture != null) { guideMessage(title, detail, gesture, parent); return }
         val empty = card(parent)
         val line = row()
         line.addView(illustration(resource, 72), LinearLayout.LayoutParams(dp(72), dp(72)).apply { marginEnd = dp(12) })

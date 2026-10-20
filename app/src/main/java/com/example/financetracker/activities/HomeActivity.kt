@@ -14,6 +14,7 @@ import com.example.financetracker.R
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.ui.WalletScreen
 import com.example.financetracker.ui.WalletMotion
+import com.example.financetracker.ui.WalletGuideView
 import com.example.financetracker.utils.PlannerRules
 import com.example.financetracker.utils.ReportPeriod
 import com.example.financetracker.receiver.NotificationScheduler
@@ -68,7 +69,7 @@ class HomeActivity : WalletScreen() {
                 addView(text("Net balance", 12, Color.rgb(213,237,255)))
                 addView(text(money(income - expense), 26, Color.WHITE, true))
             }, LinearLayout.LayoutParams(0, -2, 1f))
-            hero.addView(illustration(R.drawable.art_wallet, 80))
+            hero.addView(guide(WalletGuideView.Gesture.WELCOME, 108))
             balance.addView(hero)
             val stats = row()
             listOf(Triple("Income", income, green), Triple("Expenses", expense, red)).forEach { (label, amount, color) ->
