@@ -22,7 +22,7 @@ import com.example.financetracker.dao.GoalDao
 
 @Database(
     entities = [Transaction::class, UserProfile::class, Budget::class, Loan::class, DailyTask::class, TaskCompletion::class, FutureGoal::class],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -36,6 +36,11 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun goalDao(): GoalDao
 
     companion object {
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE loans ADD COLUMN sharedBillGroup TEXT")
+            }
+        }
         val MIGRATION_7_8 = object : Migration(7, 8) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE daily_tasks ADD COLUMN parentTaskId INTEGER")
@@ -72,7 +77,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "finance_tracker_db"
                 )
-                    .addMigrations(MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                    .addMigrations(MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                     .build()
                 INSTANCE = instance
                 instance

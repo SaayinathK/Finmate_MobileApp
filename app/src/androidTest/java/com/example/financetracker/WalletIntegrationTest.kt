@@ -32,7 +32,7 @@ class WalletIntegrationTest {
             old.execSQL("INSERT INTO task_completions VALUES (1,1,'2026-10-19',456,'Exam snapshot','Original notes')")
             old.version = 6
         }
-        val database = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8).build()
+        val database = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9).build()
         try {
             val task = database.taskDao().task(1)!!
             assertEquals("Exam", task.title); assertEquals("Full notes", task.notes)
@@ -59,10 +59,11 @@ class WalletIntegrationTest {
             old.execSQL("INSERT INTO budget VALUES ('2026_October',20000,'LKR')")
             old.version = 5
         }
-        val db = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8).build()
+        val db = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9).build()
         try {
             assertEquals("Petrol", db.transactionDao().getAllTransactionsRaw().single().title)
             assertEquals(1500.0, db.loanDao().getById(1)!!.originalAmount, 0.0)
+            assertNull(db.loanDao().getById(1)!!.sharedBillGroup)
             assertEquals(20000.0, db.budgetDao().getBudgetByKey("2026_October")!!.amount, 0.0)
             assertTrue(db.taskDao().allTasks().isEmpty())
         } finally { db.close(); context.deleteDatabase(name) }

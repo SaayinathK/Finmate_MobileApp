@@ -158,7 +158,7 @@ open class ReportsActivity : WalletScreen() {
                 if (filtered.isEmpty()) emptyState(R.drawable.art_wallet, "No transactions", parent = listing)
                 filtered.forEach { tx ->
                     entry(listing, tx.title, "${tx.date} · ${tx.category}${if (tx.splitGroup != null) " · Split" else ""}", (if (tx.type == "Income") "+ " else "− ") + money(abs(tx.amount)), tx.type == "Income") {
-                        if (tx.loanId != null) open(LoansActivity::class.java) else startActivity(Intent(this@ReportsActivity, AddTransactionActivity::class.java).putExtra("editMode", true).putExtra("transactionId", tx.id))
+                        startActivity(Intent(this@ReportsActivity, AddTransactionActivity::class.java).putExtra("editMode", true).putExtra("transactionId", tx.id))
                     }
                 }
             }

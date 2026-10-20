@@ -5,37 +5,41 @@ import androidx.room.*
 import com.example.financetracker.models.Transaction
 
 @Dao
-interface TransactionDao {
+abstract class TransactionDao {
+    @Query("SELECT * FROM transactions ORDER BY id DESC") abstract fun getAllTransactions(): LiveData<List<Transaction>>
+    @Query("SELECT * FROM transactions ORDER BY id DESC") abstract suspend fun getAllTransactionsRaw(): List<Transaction>
+    @Query("SELECT * FROM transactions WHERE id = :transactionId LIMIT 1") abstract suspend fun getTransactionById(transactionId: Int): Transaction?
+    @Insert(onConflict = OnConflictStrategy.REPLACE) abstract suspend fun insertTransaction(transaction: Transaction)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) abstract suspend fun insertAll(transactions: List<Transaction>)
+    @Update abstract suspend fun updateTransaction(transaction: Transaction)
+    @Delete protected abstract suspend fun deleteRow(transaction: Transaction)
+    @Query("SELECT sharedBillGroup FROM loans WHERE id = :id") protected abstract suspend fun billGroup(id: Int): String?
+    @Query("DELETE FROM transactions WHERE loanId = :id") protected abstract suspend fun deleteLinkedEntries(id: Int)
+    @Query("DELETE FROM loans WHERE id = :id") protected abstract suspend fun deleteLoan(id: Int)
+    @Query("DELETE FROM transactions WHERE splitGroup = :group OR loanId IN (SELECT id FROM loans WHERE sharedBillGroup = :group)")
+    protected abstract suspend fun deleteBillEntries(group: String)
+    @Query("DELETE FROM loans WHERE sharedBillGroup = :group") protected abstract suspend fun deleteBillLoans(group: String)
 
-    // Real-time LiveData for UI observation
-    @Query("SELECT * FROM transactions ORDER BY id DESC")
-    fun getAllTransactions(): LiveData<List<Transaction>>
+    @androidx.room.Transaction
+    open suspend fun deleteTransaction(transaction: Transaction) {
+        // Resolve links from storage rather than a potentially stale UI copy.
+        val stored = getTransactionById(transaction.id) ?: return
+        val group = stored.splitGroup?.takeIf { it.startsWith("bill:") } ?: stored.loanId?.let { billGroup(it) }
+        if (group != null) {
+            deleteBillEntries(group)
+            deleteBillLoans(group)
+        } else if (stored.loanId != null) {
+            deleteLinkedEntries(stored.loanId)
+            deleteLoan(stored.loanId)
+        } else deleteRow(stored)
+    }
 
-    // Raw list for background operations like export/import
-    @Query("SELECT * FROM transactions ORDER BY id DESC")
-    suspend fun getAllTransactionsRaw(): List<Transaction>
-
-    // Get specific transaction by ID
-    @Query("SELECT * FROM transactions WHERE id = :transactionId LIMIT 1")
-    suspend fun getTransactionById(transactionId: Int): Transaction?
-
-    // Insert a single transaction
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTransaction(transaction: Transaction)
-
-    // Insert multiple transactions (for Excel import)
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(transactions: List<Transaction>)
-
-    // Update a transaction
-    @Update
-    suspend fun updateTransaction(transaction: Transaction)
-
-    // Delete a transaction
-    @Delete
-    suspend fun deleteTransaction(transaction: Transaction)
-
-    // Delete all transactions
-    @Query("DELETE FROM transactions")
-    suspend fun deleteAll()
+    @Query("DELETE FROM transactions") protected abstract suspend fun deleteAllRows()
+    @Query("DELETE FROM loans WHERE id IN (SELECT loanId FROM transactions WHERE loanId IS NOT NULL) OR sharedBillGroup IN (SELECT splitGroup FROM transactions WHERE splitGroup IS NOT NULL)")
+    protected abstract suspend fun deleteLoansWithHistory()
+    @androidx.room.Transaction
+    open suspend fun deleteAll() {
+        deleteLoansWithHistory()
+        deleteAllRows()
+    }
 }

@@ -87,7 +87,7 @@ open class SettingsActivity : WalletScreen() {
             section("Delete data")
             val deletion = card()
             button("Delete all transactions", deletion, true) {
-                confirmDeletion("Delete all transactions?", "All income and expense history will be removed. Outstanding loan balances, tasks and budgets will stay. Export a copy first if needed.") {
+                confirmDeletion("Delete all transactions?", "All income and expense history and every linked loan will be removed, including shared bills and payments. Unlinked older loans, tasks and budgets will stay. Export a copy first if needed.") {
                     lifecycleScope.launch {
                         try { com.example.financetracker.repository.DataMaintenance.deleteTransactions(db); toast("All transactions deleted") }
                         catch (_: Exception) { toast("Could not delete transactions") }

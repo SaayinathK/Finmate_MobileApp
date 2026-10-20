@@ -12,5 +12,6 @@ data class Loan(
     val type: String,   // "RECEIVED" (income) or "GIVVEN" (expense)
     val note: String? = null,
     val date: Long = System.currentTimeMillis(),
-    @ColumnInfo(defaultValue = "0") val originalAmount: Double = amount
+    @ColumnInfo(defaultValue = "0") val originalAmount: Double = amount,
+    val sharedBillGroup: String? = null
 ) : java.io.Serializable

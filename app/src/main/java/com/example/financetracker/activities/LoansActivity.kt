@@ -49,6 +49,14 @@ class LoansActivity : WalletScreen() {
                     loan.note?.takeIf { it.isNotBlank() }?.let { addView(text(it, 14, muted)) }
                     if (loan.amount > 0) actions(this, (if (paying) "Repay" else "Collect") to { settle(loan) }, "History" to { showHistory(loan) })
                     else button("History", this, true) { showHistory(loan) }
+                    button("Delete loan", this, true) {
+                        confirmDeletion("Delete loan?", if (loan.sharedBillGroup != null) "This deletes the entire shared bill, all its related loans and payments. Account totals will change." else "This deletes this loan and every linked opening transaction, repayment and collection. Account totals will change.") {
+                            lifecycleScope.launch {
+                                try { db.loanDao().deleteLoanById(loan.id); toast("Loan and linked history deleted") }
+                                catch (_: Exception) { toast("Could not delete loan") }
+                            }
+                        }
+                    }.setTextColor(red)
                 }
             }
         }

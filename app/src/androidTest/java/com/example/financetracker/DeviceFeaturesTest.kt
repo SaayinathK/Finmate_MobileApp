@@ -50,11 +50,12 @@ class DeviceFeaturesTest {
             java.io.File(folder, "$name.png").outputStream().use { bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }; bitmap.recycle()
         }
     }
-    @Test fun deletionRemovesOnlyTheChosenDataAndKeepsLoanBalances() = runBlocking {
+    @Test fun deletionRemovesLinkedLoansAndPreservesUnlinkedBalances() = runBlocking {
         val database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         try {
             LoanLedger(database).create("Person", 500.0, true, "Borrowed", LocalDate.now())
             val loan = database.loanDao().getAllLoans().first().single()
+            val legacyId = database.loanDao().insertLoan(Loan(personName = "Legacy", amount = 80.0, type = "RECEIVED")).toInt()
             val first = database.taskDao().insert(DailyTask(title = "One", startDate = LocalDate.now().toString())).toInt()
             val second = database.taskDao().insert(DailyTask(title = "Two", startDate = LocalDate.now().toString())).toInt()
             database.taskDao().complete(TaskCompletion(taskId = first, occurrenceDate = LocalDate.now().toString(), title = "One", notes = ""))
@@ -62,12 +63,11 @@ class DeviceFeaturesTest {
             assertNull(database.taskDao().task(first)); assertNotNull(database.taskDao().task(second)); assertTrue(database.taskDao().completions().isEmpty())
             DataMaintenance.deleteTransactions(database)
             assertTrue(database.transactionDao().getAllTransactionsRaw().isEmpty())
-            assertEquals(500.0, database.loanDao().getById(loan.id)!!.amount, 0.0)
-            LoanLedger(database).settle(loan.id, 100.0)
-            assertEquals(-100.0, database.transactionDao().getAllTransactionsRaw().single().amount, 0.0)
+            assertNull(database.loanDao().getById(loan.id))
+            assertEquals(80.0, database.loanDao().getById(legacyId)!!.amount, 0.0)
             DataMaintenance.deleteTasks(database)
             assertTrue(database.taskDao().allTasks().isEmpty()); assertTrue(database.taskDao().completions().isEmpty())
-            assertEquals(1, database.transactionDao().getAllTransactionsRaw().size)
+            assertTrue(database.transactionDao().getAllTransactionsRaw().isEmpty())
         } finally { database.close() }
     }
     @Test fun deletionRequiresBothStepsAndCancelNeverDeletes() {

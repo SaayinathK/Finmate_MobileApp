@@ -47,8 +47,23 @@ open class AddTransactionActivity : WalletScreen() {
             loanDirection = savedInstanceState?.getInt("loanDirection") ?: 0
             screen(if (edit) "Edit transaction" else if (intent.getBooleanExtra("createLoan", false)) "Add loan" else "Add transaction", nav = false)
             if (current?.loanId != null || current?.splitGroup?.startsWith("bill:") == true) {
-                card().addView(text("Manage this entry in Loans.", 16, muted))
-                button("View loans") { open(LoansActivity::class.java); finish() }; return@launch
+                val entry = current!!
+                val shared = entry.splitGroup?.startsWith("bill:") == true || entry.loanId?.let { db.loanDao().getById(it)?.sharedBillGroup } != null
+                card().apply {
+                    addView(text(entry.title, 20, ink, true))
+                    addView(text("${entry.date} · ${money(kotlin.math.abs(entry.amount))}", 16, muted))
+                    addView(text("Manage payments in Loans. Deleting this entry also deletes its linked loan and payment history.", 14, muted))
+                }
+                button("View loans") { open(LoansActivity::class.java) }
+                button("Delete linked entry", outlined = true) {
+                    confirmDeletion("Delete linked records?", if (shared) "This deletes the entire shared bill, every related person's loan and all their payments. Account totals will change." else "This deletes the loan, its opening transaction and all repayments or collections. Account totals will change.") {
+                        lifecycleScope.launch {
+                            try { db.transactionDao().deleteTransaction(entry); toast("Linked records deleted"); finish() }
+                            catch (_: Exception) { toast("Could not delete linked records") }
+                        }
+                    }
+                }
+                return@launch
             }
             val form = card()
             choices(form, listOf("Expense", "Income"), if (income) 1 else 0) { income = it == 1; renderSuggestions() }
@@ -180,7 +195,7 @@ open class AddTransactionActivity : WalletScreen() {
                         if (current != null) db.transactionDao().updateTransaction(tx) else db.transactionDao().insertTransaction(tx)
                         if (sharedBill) {
                             val shares = PlannerRules.splitEqual(cents, people.size + 1)
-                            people.forEachIndexed { i, name -> db.loanDao().insertLoan(Loan(personName = name, amount = shares[i+1] / 100.0, type = "GIVVEN", note = "Shared bill: $title (${PlannerRules.displayDate(date)})")) }
+                            people.forEachIndexed { i, name -> db.loanDao().insertLoan(Loan(personName = name, amount = shares[i+1] / 100.0, type = "GIVVEN", note = "Shared bill: $title (${PlannerRules.displayDate(date)})", sharedBillGroup = tx.splitGroup)) }
                         }
                     }
                 }
