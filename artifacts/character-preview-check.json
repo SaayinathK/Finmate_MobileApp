@@ -1,0 +1,39 @@
+{
+  "startup": {
+    "selected": "female",
+    "width": 1774,
+    "height": 887,
+    "canvases": [
+      {
+        "visible": 37560,
+        "whiteLowerHalf": 9963
+      }
+    ],
+    "switchBackToMale": true
+  },
+  "character": {
+    "selected": "female",
+    "width": 1254,
+    "height": 1254,
+    "canvases": [
+      {
+        "visible": 63812,
+        "whiteLowerHalf": 26722
+      },
+      {
+        "visible": 68513,
+        "whiteLowerHalf": 27524
+      },
+      {
+        "visible": 68054,
+        "whiteLowerHalf": 28396
+      },
+      {
+        "visible": 64892,
+        "whiteLowerHalf": 26177
+      }
+    ],
+    "switchBackToMale": true
+  },
+  "browserErrors": []
+}
