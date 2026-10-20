@@ -10,7 +10,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LoanDao {
     @Insert
-    suspend fun insertLoan(loan: Loan)
+    suspend fun insertLoan(loan: Loan): Long
+
+    @Query("SELECT * FROM loans WHERE id = :id")
+    suspend fun getById(id: Int): Loan?
 
     @Query("SELECT * FROM loans")
     fun getAllLoans(): Flow<List<Loan>>

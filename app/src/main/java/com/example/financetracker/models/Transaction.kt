@@ -10,5 +10,8 @@ data class Transaction(
     val amount: Double,
     val category: String,
     val date: String,
-    val type: String
+    val type: String,
+    val loanId: Int? = null,
+    val loanEvent: String? = null,
+    val splitGroup: String? = null
 )

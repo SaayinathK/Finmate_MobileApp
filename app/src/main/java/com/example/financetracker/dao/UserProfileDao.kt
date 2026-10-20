@@ -9,6 +9,9 @@ interface UserProfileDao {
     @Query("SELECT * FROM user_profiles WHERE isLoggedIn = 1 LIMIT 1")
     suspend fun getLoggedInUser(): UserProfile?
 
+    @Query("SELECT * FROM user_profiles WHERE email = :email LIMIT 1")
+    suspend fun getByEmail(email: String): UserProfile?
+
     @Query("SELECT * FROM user_profiles WHERE email = :email AND password = :password LIMIT 1")
     suspend fun login(email: String, password: String): UserProfile?
 
