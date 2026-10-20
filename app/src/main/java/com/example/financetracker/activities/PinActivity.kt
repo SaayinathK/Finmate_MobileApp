@@ -79,64 +79,129 @@ class PinActivity : AppCompatActivity() {
         super.onStop()
     }
 
+    private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
+    private fun color(id: Int) = androidx.core.content.ContextCompat.getColor(this, id)
+    private fun rounded(fill: Int, radius: Int, stroke: Int? = null) = android.graphics.drawable.GradientDrawable().apply {
+        setColor(fill); cornerRadius = dp(radius).toFloat()
+        stroke?.let { setStroke(dp(1), it) }
+    }
+    private fun label(value: String, size: Float, tint: Int, bold: Boolean = false) = TextView(this).apply {
+        text = value; textSize = size; setTextColor(tint); gravity = Gravity.CENTER
+        typeface = androidx.core.content.res.ResourcesCompat.getFont(this@PinActivity,
+            if (bold) R.font.inter_semibold else R.font.inter_medium)
+    }
     private fun render() {
         current = null; next = null; confirmation = null; password = null
-        val padding = (24 * resources.displayMetrics.density).toInt()
-        val scroll = ScrollView(this).apply { isFillViewport = true; isSaveEnabled = false; fitsSystemWindows = true }
-        form = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_VERTICAL
-            setPadding(padding, padding, padding, padding); isSaveEnabled = false
+        val background = color(R.color.startup_background)
+        val ink = color(R.color.startup_ink)
+        val muted = color(R.color.startup_muted)
+        val accent = color(R.color.blue_700)
+        androidx.core.view.WindowCompat.getInsetsController(window, window.decorView).apply {
+            val light = resources.getBoolean(R.bool.wallet_light_bars)
+            isAppearanceLightStatusBars = light; isAppearanceLightNavigationBars = light
         }
-        scroll.addView(form); setContentView(scroll)
-        form.addView(android.widget.ImageView(this).apply {
-            setImageResource(R.drawable.swallet_logo); contentDescription = "SWallet"
-            adjustViewBounds = true
-        }, LinearLayout.LayoutParams(padding * 4, padding * 4).apply { gravity = Gravity.CENTER_HORIZONTAL })
-        form.addView(TextView(this).apply {
-            text = when (mode) { SETUP -> "Create your PIN"; CHANGE -> "Change PIN"; DISABLE -> "Remove PIN lock"; RECOVER -> "Recover your PIN"; RESET -> "Choose a new PIN"; else -> "Unlock SWallet" }
-            textSize = 26f; gravity = Gravity.CENTER; setPadding(0, padding, 0, padding / 2)
+        window.statusBarColor = background; window.navigationBarColor = background
+        val scroll = ScrollView(this).apply {
+            isFillViewport = true; isSaveEnabled = false; setBackgroundColor(background)
+            clipToPadding = false
+        }
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(scroll) { view, insets ->
+            val bars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars() or androidx.core.view.WindowInsetsCompat.Type.ime())
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom); insets
+        }
+        val page = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER
+            setPadding(dp(24), dp(28), dp(24), dp(24)); isSaveEnabled = false
+        }
+        scroll.addView(page); setContentView(scroll)
+        page.addView(label("S W A L L E T", 12f, accent, true))
+        page.addView(android.widget.ImageView(this).apply {
+            setImageResource(R.drawable.swallet_launcher_symbol); contentDescription = "SWallet"
+            this.background = rounded(color(R.color.wallet_soft_blue), 32)
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+        }, LinearLayout.LayoutParams(dp(108), dp(108)).apply { gravity = Gravity.CENTER_HORIZONTAL; topMargin = dp(20); bottomMargin = dp(22) })
+        val title = when (mode) { SETUP -> "Create your PIN"; CHANGE -> "Change PIN"; DISABLE -> "Remove PIN lock"; RECOVER -> "Recover your PIN"; RESET -> "Choose a new PIN"; else -> "Unlock SWallet" }
+        page.addView(label(title, 28f, ink, true).apply { accessibilityHeadingCompat() })
+        page.addView(label(when (mode) {
+            SETUP -> "Four digits. A little more peace of mind."
+            RECOVER -> "Verify your account to choose a new PIN."
+            RESET -> "Account verified. Make your new PIN yours."
+            DISABLE -> "Confirm your PIN to turn off app lock."
+            CHANGE -> "Confirm your PIN, then choose four new digits."
+            else -> "Welcome back. Your wallet is ready."
+        }, 14f, muted), LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(10); bottomMargin = dp(26) })
+        form = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(22), dp(20), dp(16))
+            this.background = rounded(color(R.color.unlock_surface), 26, color(R.color.wallet_border)); isSaveEnabled = false
+        }
+        page.addView(form, LinearLayout.LayoutParams(-1, -2).apply {
+            // Keep the form readable on tablets and landscape screens.
+            val available = resources.displayMetrics.widthPixels - dp(48)
+            width = minOf(available, dp(420)); gravity = Gravity.CENTER_HORIZONTAL
         })
-        form.addView(TextView(this).apply {
-            text = when (mode) {
-                SETUP -> "Use four digits to protect SWallet whenever you leave the app. Widget task details stay visible. Your account password can reset a forgotten PIN."
-                RECOVER -> "Enter the password of the account that enabled PIN lock."
-                RESET -> "Account verified. Enter and confirm a new four-digit PIN."
-                DISABLE -> "Enter your current PIN to remove app lock."
-                CHANGE -> "Enter your current PIN, then choose a new four-digit PIN."
-                else -> "Enter your four-digit PIN to continue."
-            }; textSize = 15f; gravity = Gravity.CENTER; setPadding(0, 0, 0, padding)
-        })
+        val securityLabel = LinearLayout(this).apply { gravity = Gravity.CENTER; orientation = LinearLayout.HORIZONTAL }
+        securityLabel.addView(android.widget.ImageView(this).apply {
+            setImageResource(R.drawable.ic_lock_outline); setColorFilter(accent); contentDescription = null
+        }, LinearLayout.LayoutParams(dp(18), dp(18)).apply { marginEnd = dp(8) })
+        securityLabel.addView(label(if (mode == RECOVER) "ACCOUNT VERIFICATION" else "PRIVATE ACCESS", 10f, accent, true))
+        form.addView(securityLabel, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(18) })
         if (mode in listOf(UNLOCK, CHANGE, DISABLE)) current = secret("Current PIN")
         if (mode in listOf(SETUP, CHANGE, RESET)) { next = secret("New PIN"); confirmation = secret("Confirm new PIN") }
         if (mode == RECOVER) password = secret("Account password", numeric = false)
-        status = TextView(this).apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE; setPadding(0, padding / 2, 0, padding / 2) }
+        status = label("", 12f, color(R.color.red)).apply {
+            gravity = Gravity.START; accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
+            setPadding(0, dp(8), 0, dp(8))
+        }
         form.addView(status)
         submit = MaterialButton(this).apply {
             text = when (mode) { UNLOCK -> "Unlock"; DISABLE -> "Remove PIN"; RECOVER -> "Verify account"; else -> "Save PIN" }
+            isAllCaps = false; textSize = 16f; minHeight = dp(56); cornerRadius = dp(16)
+            backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.rgb(0, 105, 224))
+            setTextColor(android.graphics.Color.WHITE)
+            icon = androidx.core.content.ContextCompat.getDrawable(this@PinActivity, R.drawable.ic_lock_outline)
+            iconTint = android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE)
+            iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
             setOnClickListener { perform() }
         }
-        form.addView(submit)
+        form.addView(submit, LinearLayout.LayoutParams(-1, dp(60)))
         if (mode in listOf(UNLOCK, CHANGE, DISABLE)) form.addView(MaterialButton(this, null, com.google.android.material.R.attr.borderlessButtonStyle).apply {
-            text = "Forgot PIN?"; setOnClickListener { if (!busy) { mode = RECOVER; render() } }
-        })
+            text = "Forgot PIN?"; isAllCaps = false; setTextColor(accent)
+            setOnClickListener { if (!busy) { mode = RECOVER; render() } }
+        }, LinearLayout.LayoutParams(-1, dp(48)))
         form.addView(MaterialButton(this, null, com.google.android.material.R.attr.borderlessButtonStyle).apply {
             text = if (mode == UNLOCK) "Close SWallet" else "Cancel"
+            isAllCaps = false; setTextColor(muted)
             setOnClickListener { if (!busy) leave() }
-        })
+        }, LinearLayout.LayoutParams(-1, dp(48)))
+        page.addView(label(if (mode == SETUP) "Your account password can reset a forgotten PIN.\nWidget task details stay visible." else "Your money. Your plans. Your space.", 12f, muted),
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(24) })
     }
+    private fun View.accessibilityHeadingCompat() { androidx.core.view.ViewCompat.setAccessibilityHeading(this, true) }
 
     private fun secret(label: String, numeric: Boolean = true): TextInputEditText {
-        val box = TextInputLayout(this).apply { hint = label; boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE }
+        val box = TextInputLayout(this).apply {
+            hint = label; boxBackgroundMode = TextInputLayout.BOX_BACKGROUND_OUTLINE
+            boxBackgroundColor = color(R.color.startup_background); boxStrokeColor = color(R.color.blue_700)
+            defaultHintTextColor = android.content.res.ColorStateList.valueOf(color(R.color.startup_muted))
+            setBoxCornerRadii(dp(14).toFloat(), dp(14).toFloat(), dp(14).toFloat(), dp(14).toFloat())
+        }
         val input = TextInputEditText(box.context).apply {
             inputType = if (numeric) InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
                 else InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
             if (numeric) { keyListener = DigitsKeyListener.getInstance("0123456789"); filters = arrayOf(InputFilter.LengthFilter(4)) }
             transformationMethod = android.text.method.PasswordTransformationMethod.getInstance()
+            textSize = if (numeric) 26f else 16f
+            if (numeric) { gravity = Gravity.CENTER; letterSpacing = 0.35f }
+            setTextColor(color(R.color.startup_ink)); minHeight = dp(64)
+            setPadding(dp(16), dp(16), dp(16), dp(12))
             isSaveEnabled = false; importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
-            setAutofillHints(null)
-            setSingleLine(true)
+            setAutofillHints(null); setSingleLine(true)
+            imeOptions = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
+            setOnEditorActionListener { _, action, _ ->
+                if (action == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) { perform(); true } else false
+            }
         }
-        box.addView(input); form.addView(box)
+        box.addView(input); form.addView(box, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6); bottomMargin = dp(4) })
         return input
     }
 

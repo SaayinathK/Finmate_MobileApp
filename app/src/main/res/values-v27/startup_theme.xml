@@ -3,8 +3,8 @@
         <item name="android:windowBackground">@color/startup_background</item>
         <item name="android:statusBarColor">@color/startup_background</item>
         <item name="android:navigationBarColor">@color/startup_background</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowLightStatusBar">@bool/wallet_light_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/wallet_light_bars</item>
         <item name="android:windowAnimationStyle">@null</item>
     </style>
 </resources>

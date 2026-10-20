@@ -1,0 +1,10 @@
+<resources>
+    <color name="startup_background">#000000</color>
+    <color name="startup_ink">#F5FAFF</color>
+    <color name="startup_muted">#A6B6CA</color>
+    <color name="startup_accent">#74C3FF</color>
+    <color name="startup_track">#283E54</color>
+    <color name="startup_panel">#101820</color>
+    <color name="startup_panel_border">#243648</color>
+    <color name="unlock_surface">#101010</color>
+</resources>

@@ -1,9 +1,3 @@
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item><shape><gradient android:angle="315" android:startColor="#071A37" android:centerColor="#0B2E5D" android:endColor="#074475" /></shape></item>
-    <item android:gravity="top|right" android:top="-100dp" android:right="-120dp" android:width="380dp" android:height="380dp">
-        <shape android:shape="oval"><gradient android:type="radial" android:gradientRadius="190dp" android:startColor="#3016A4F5" android:endColor="#0016A4F5" /></shape>
-    </item>
-    <item android:gravity="bottom|left" android:bottom="-140dp" android:left="-100dp" android:width="360dp" android:height="360dp">
-        <shape android:shape="oval"><gradient android:type="radial" android:gradientRadius="180dp" android:startColor="#2020C7B7" android:endColor="#0020C7B7" /></shape>
-    </item>
-</layer-list>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/startup_background" />
+</shape>

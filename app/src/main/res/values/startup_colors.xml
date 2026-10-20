@@ -1,7 +1,10 @@
 <resources>
-    <color name="startup_background">#071A37</color>
-    <color name="startup_ink">#F5FAFF</color>
-    <color name="startup_muted">#ACC9E7</color>
-    <color name="startup_accent">#74D6FF</color>
-    <color name="startup_track">#3B739E</color>
+    <color name="startup_background">#FFFFFF</color>
+    <color name="startup_ink">#13243B</color>
+    <color name="startup_muted">#5B7089</color>
+    <color name="startup_accent">#0069E0</color>
+    <color name="startup_track">#C6D8ED</color>
+    <color name="startup_panel">#F5F9FF</color>
+    <color name="startup_panel_border">#DCE8F5</color>
+    <color name="unlock_surface">#F7F9FC</color>
 </resources>
