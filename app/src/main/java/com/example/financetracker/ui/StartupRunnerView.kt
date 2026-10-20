@@ -1,6 +1,8 @@
 package com.example.financetracker.ui
 
 import android.animation.ValueAnimator
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -30,6 +32,7 @@ class StartupRunnerView @JvmOverloads constructor(context: Context, attrs: Attri
     private var played = false
     private var visibleToUser = false
     private var animator: ValueAnimator? = null
+    private var completion: (() -> Unit)? = null
     private var owner: LifecycleOwner? = null
     init { importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
     override fun onAttachedToWindow() {
@@ -40,7 +43,11 @@ class StartupRunnerView @JvmOverloads constructor(context: Context, attrs: Attri
     }
     override fun onVisibilityAggregated(isVisible: Boolean) {
         super.onVisibilityAggregated(isVisible); visibleToUser = isVisible
-        if (isVisible) play() else stop()
+        if (isVisible) play() else {
+            // Keep a pending completion if visibility changes without a lifecycle pause.
+            val finished = completion
+            stop(); played = false; completion = finished
+        }
     }
     override fun onStart(owner: LifecycleOwner) { updateCharacter(); play() }
     override fun onStop(owner: LifecycleOwner) { stop() }
@@ -48,20 +55,50 @@ class StartupRunnerView @JvmOverloads constructor(context: Context, attrs: Attri
         stop(); owner?.lifecycle?.removeObserver(this); owner = null; atlas = null
         super.onDetachedFromWindow()
     }
+    /** Start the visible startup sequence again after a PIN prompt or background interruption. */
+    fun restart(onFinished: () -> Unit) {
+        updateCharacter()
+        stop()
+        played = false; phase = 0f; completion = onFinished
+        invalidate()
+        play()
+    }
+    fun cancelPlayback() { stop(); played = false }
+
     private fun play() {
         if (!isAttachedToWindow || !visibleToUser || played || owner?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.STARTED) == false) return
-        if (!WalletMotion.enabled()) { phase = 0.5f; invalidate(); return }
+        if (!WalletMotion.enabled()) {
+            played = true; phase = 0.5f; invalidate()
+            finishPlayback()
+            return
+        }
         played = true
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = DURATION; interpolator = LinearInterpolator()
             addUpdateListener {
-                if (!WalletMotion.enabled()) { stop(); phase = 0.5f; invalidate(); return@addUpdateListener }
+                if (!WalletMotion.enabled()) {
+                    val finished = completion
+                    stop(); phase = 0.5f; invalidate(); finished?.invoke()
+                    return@addUpdateListener
+                }
                 phase = it.animatedValue as Float; invalidate()
             }
+            addListener(object : AnimatorListenerAdapter() {
+                private var cancelled = false
+                override fun onAnimationCancel(animation: Animator) { cancelled = true }
+                override fun onAnimationEnd(animation: Animator) {
+                    if (!cancelled) { animator = null; finishPlayback() }
+                }
+            })
             start()
         }
     }
-    private fun stop() { animator?.cancel(); animator = null }
+    private fun finishPlayback() {
+        val finished = completion
+        completion = null
+        finished?.invoke()
+    }
+    private fun stop() { completion = null; animator?.cancel(); animator = null }
     private fun updateCharacter() {
         val selected = AnimationCharacter.selected(context)
         if (character != selected || atlas == null) {
