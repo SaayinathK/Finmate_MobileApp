@@ -10,6 +10,7 @@ abstract class LoanDao {
     @Query("SELECT * FROM loans WHERE id = :id") abstract suspend fun getById(id: Int): Loan?
     @Query("SELECT * FROM loans") abstract fun getAllLoans(): Flow<List<Loan>>
     @Update abstract suspend fun updateLoan(loan: Loan)
+    @Query("SELECT * FROM loans WHERE sharedBillGroup = :group") abstract suspend fun getForBill(group: String): List<Loan>
     @Query("DELETE FROM loans WHERE id = :id") protected abstract suspend fun deleteRow(id: Int)
     @Query("DELETE FROM transactions WHERE loanId = :id") protected abstract suspend fun deleteLinkedEntries(id: Int)
     @Query("DELETE FROM transactions WHERE splitGroup = :group OR loanId IN (SELECT id FROM loans WHERE sharedBillGroup = :group)")

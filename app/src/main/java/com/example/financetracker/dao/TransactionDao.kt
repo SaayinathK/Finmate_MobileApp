@@ -12,6 +12,8 @@ abstract class TransactionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) abstract suspend fun insertTransaction(transaction: Transaction)
     @Insert(onConflict = OnConflictStrategy.REPLACE) abstract suspend fun insertAll(transactions: List<Transaction>)
     @Update abstract suspend fun updateTransaction(transaction: Transaction)
+    @Query("SELECT * FROM transactions WHERE loanId = :loanId") abstract suspend fun getForLoan(loanId: Int): List<Transaction>
+    @Query("SELECT * FROM transactions WHERE splitGroup = :group") abstract suspend fun getForSplitGroup(group: String): List<Transaction>
     @Delete protected abstract suspend fun deleteRow(transaction: Transaction)
     @Query("SELECT sharedBillGroup FROM loans WHERE id = :id") protected abstract suspend fun billGroup(id: Int): String?
     @Query("DELETE FROM transactions WHERE loanId = :id") protected abstract suspend fun deleteLinkedEntries(id: Int)

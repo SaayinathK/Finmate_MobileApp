@@ -122,7 +122,7 @@ abstract class WalletScreen : AppCompatActivity() {
         }
         parent.addView(actions)
     }
-    fun entry(parent: LinearLayout = content, title: String, detail: String, amount: String, incoming: Boolean, action: () -> Unit) {
+    fun entry(parent: LinearLayout = content, title: String, detail: String, amount: String, incoming: Boolean, editAction: (() -> Unit)? = null, action: () -> Unit) {
         val item = card(parent)
         val line = row()
         line.addView(badge(if (incoming) R.drawable.ic_arrow_in else R.drawable.ic_arrow_out, if (incoming) green else red, if (incoming) Color.rgb(231,247,241) else Color.rgb(255,239,241)), LinearLayout.LayoutParams(dp(32), dp(32)).apply { marginEnd = dp(10) })
@@ -130,9 +130,10 @@ abstract class WalletScreen : AppCompatActivity() {
             addView(text(title, 15, ink, true)); addView(text(detail, 11, muted))
         }, LinearLayout.LayoutParams(0, -2, 1f).apply { marginEnd = dp(8) })
         line.addView(text(amount, 14, if (incoming) green else red, true))
+        editAction?.let { edit -> line.addView(iconButton(R.drawable.ic_edit_outline, "Edit $title", edit), LinearLayout.LayoutParams(dp(48), dp(48))) }
         item.addView(line)
         item.minimumHeight = dp(56); item.isFocusable = true
-        item.contentDescription = "$title, $detail, $amount. Open details"
+        item.contentDescription = "$title, $detail, $amount. ${if (editAction != null) "Edit transaction" else "Open details"}"
         val ripple = android.util.TypedValue()
         theme.resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)
         item.foreground = androidx.core.content.ContextCompat.getDrawable(this, ripple.resourceId)

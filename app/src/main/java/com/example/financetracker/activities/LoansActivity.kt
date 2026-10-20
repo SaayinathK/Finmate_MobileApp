@@ -49,6 +49,9 @@ class LoansActivity : WalletScreen() {
                     loan.note?.takeIf { it.isNotBlank() }?.let { addView(text(it, 14, muted)) }
                     if (loan.amount > 0) actions(this, (if (paying) "Repay" else "Collect") to { settle(loan) }, "History" to { showHistory(loan) })
                     else button("History", this, true) { showHistory(loan) }
+                    button("Edit loan", this, true) {
+                        startActivity(android.content.Intent(this@LoansActivity, LoanEditorActivity::class.java).putExtra("loanId", loan.id))
+                    }
                     button("Delete loan", this, true) {
                         confirmDeletion("Delete loan?", if (loan.sharedBillGroup != null) "This deletes the entire shared bill, all its related loans and payments. Account totals will change." else "This deletes this loan and every linked opening transaction, repayment and collection. Account totals will change.") {
                             lifecycleScope.launch {
@@ -81,9 +84,20 @@ class LoansActivity : WalletScreen() {
     }
     private fun showHistory(loan: Loan) {
         lifecycleScope.launch {
-            val entries = db.transactionDao().getAllTransactionsRaw().filter { it.loanId == loan.id }.sortedBy { it.id }
-            val lines = entries.joinToString("\n\n") { "${it.date} · ${it.title}\n${it.type}: ${money(kotlin.math.abs(it.amount))}" }
-            AlertDialog.Builder(this@LoansActivity).setTitle(loan.personName).setMessage("Original: ${money(loan.originalAmount)}\nOutstanding: ${money(loan.amount)}\n\n" + lines.ifBlank { "No linked payments" }).setPositiveButton("Done", null).show()
+            val entries = db.transactionDao().getForLoan(loan.id).sortedBy { it.id }
+            val history = column().apply { setPadding(dp(20), dp(8), dp(20), dp(8)) }
+            history.addView(text("Original: ${money(loan.originalAmount)}\nOutstanding: ${money(loan.amount)}", 16, ink, true))
+            if (entries.isEmpty()) history.addView(text("No linked payments", 14, muted))
+            else history.addView(text("Tap an entry to edit its details.", 13, muted))
+            val dialog = AlertDialog.Builder(this@LoansActivity).setTitle(loan.personName)
+                .setView(android.widget.ScrollView(this@LoansActivity).apply { addView(history) }).setPositiveButton("Done", null).create()
+            entries.forEach { entry ->
+                button("${entry.date} · ${entry.title}\n${entry.type}: ${money(kotlin.math.abs(entry.amount))}", history, true) {
+                    dialog.dismiss()
+                    startActivity(android.content.Intent(this@LoansActivity, TransactionEditorActivity::class.java).putExtra("transactionId", entry.id))
+                }
+            }
+            dialog.show()
         }
     }
 }

@@ -124,9 +124,8 @@ class HomeActivity : WalletScreen() {
             section("Recent activity", "${filtered.size} transactions")
             if (filtered.isEmpty()) emptyState(R.drawable.art_wallet, "No transactions", "Add income or an expense")
             filtered.sortedByDescending { PlannerRules.parseDate(it.date) }.take(4).forEach { tx ->
-                entry(title = tx.title, detail = "${tx.category} · ${tx.date}", amount = (if (tx.type == "Income") "+ " else "− ") + money(kotlin.math.abs(tx.amount)), incoming = tx.type == "Income") {
-                    startActivity(android.content.Intent(this@HomeActivity, AddTransactionActivity::class.java).putExtra("editMode", true).putExtra("transactionId", tx.id))
-                }
+                val editEntry = { startActivity(android.content.Intent(this@HomeActivity, TransactionEditorActivity::class.java).putExtra("transactionId", tx.id)) }
+                entry(title = tx.title, detail = "${tx.category} · ${tx.date}", amount = (if (tx.type == "Income") "+ " else "− ") + money(kotlin.math.abs(tx.amount)), incoming = tx.type == "Income", editAction = editEntry) { editEntry() }
             }
         }
     }

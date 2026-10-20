@@ -157,9 +157,8 @@ open class ReportsActivity : WalletScreen() {
                 val filtered = transactions.filter { (type == 0 || it.type == if (type == 1) "Income" else "Expense") && (it.title.contains(query, true) || it.category.contains(query, true)) }.sortedWith(compareByDescending<Transaction> { PlannerRules.parseDate(it.date) }.thenByDescending { it.id })
                 if (filtered.isEmpty()) emptyState(R.drawable.art_wallet, "No transactions", parent = listing)
                 filtered.forEach { tx ->
-                    entry(listing, tx.title, "${tx.date} · ${tx.category}${if (tx.splitGroup != null) " · Split" else ""}", (if (tx.type == "Income") "+ " else "− ") + money(abs(tx.amount)), tx.type == "Income") {
-                        startActivity(Intent(this@ReportsActivity, AddTransactionActivity::class.java).putExtra("editMode", true).putExtra("transactionId", tx.id))
-                    }
+                    val editEntry = { startActivity(Intent(this@ReportsActivity, TransactionEditorActivity::class.java).putExtra("transactionId", tx.id)) }
+                    entry(listing, tx.title, "${tx.date} · ${tx.category}${if (tx.splitGroup != null) " · Split" else ""}", (if (tx.type == "Income") "+ " else "− ") + money(abs(tx.amount)), tx.type == "Income", editAction = editEntry) { editEntry() }
                 }
             }
             showList()

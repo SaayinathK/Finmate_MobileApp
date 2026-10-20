@@ -55,6 +55,10 @@ open class AddTransactionActivity : WalletScreen() {
                     addView(text("Manage payments in Loans. Deleting this entry also deletes its linked loan and payment history.", 14, muted))
                 }
                 button("View loans") { open(LoansActivity::class.java) }
+                button("Edit transaction", outlined = true) {
+                    startActivity(android.content.Intent(this@AddTransactionActivity, TransactionEditorActivity::class.java).putExtra("transactionId", entry.id))
+                    finish()
+                }
                 button("Delete linked entry", outlined = true) {
                     confirmDeletion("Delete linked records?", if (shared) "This deletes the entire shared bill, every related person's loan and all their payments. Account totals will change." else "This deletes the loan, its opening transaction and all repayments or collections. Account totals will change.") {
                         lifecycleScope.launch {
@@ -192,10 +196,11 @@ open class AddTransactionActivity : WalletScreen() {
                     } else {
                         val sharedBill = mode == 2
                         val tx = Transaction(id = current?.id ?: 0, title = title, amount = if (income) amount else -amount, category = category, date = PlannerRules.displayDate(date), type = if (income) "Income" else "Expense", splitGroup = if (sharedBill) "bill:${UUID.randomUUID()}" else current?.splitGroup)
-                        if (current != null) db.transactionDao().updateTransaction(tx) else db.transactionDao().insertTransaction(tx)
+                        if (current != null) com.example.financetracker.repository.FinancialEditor(db).editTransaction(tx.id, title, cents, category, date, income)
+                        else db.transactionDao().insertTransaction(tx)
                         if (sharedBill) {
                             val shares = PlannerRules.splitEqual(cents, people.size + 1)
-                            people.forEachIndexed { i, name -> db.loanDao().insertLoan(Loan(personName = name, amount = shares[i+1] / 100.0, type = "GIVVEN", note = "Shared bill: $title (${PlannerRules.displayDate(date)})", sharedBillGroup = tx.splitGroup)) }
+                            people.forEachIndexed { i, name -> db.loanDao().insertLoan(Loan(personName = name, amount = shares[i+1] / 100.0, type = "GIVVEN", note = "Shared bill: $title (${PlannerRules.displayDate(date)})", sharedBillGroup = tx.splitGroup, date = date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli())) }
                         }
                     }
                 }

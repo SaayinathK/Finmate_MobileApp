@@ -77,6 +77,8 @@
         <activity android:name=".activities.ExportImportActivity" />
         <activity android:name=".activities.HomeActivity" />
         <activity android:name=".activities.LoansActivity" />
+        <activity android:name=".activities.LoanEditorActivity" android:exported="false" />
+        <activity android:name=".activities.TransactionEditorActivity" android:exported="false" />
         <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.SettingsActivity" />
         <activity android:name=".activities.SignupActivity" />
