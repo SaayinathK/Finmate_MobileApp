@@ -1,0 +1,7 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape android:shape="oval">
+        <size android:width="108dp" android:height="108dp" />
+        <gradient android:angle="315" android:startColor="#F2FBFF" android:endColor="#DAECFF" />
+    </shape></item>
+    <item><inset android:drawable="@drawable/swallet_launcher_symbol" android:insetLeft="8%" android:insetTop="8%" android:insetRight="8%" android:insetBottom="8%" /></item>
+</layer-list>

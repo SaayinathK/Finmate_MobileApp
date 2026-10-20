@@ -22,7 +22,7 @@
         android:src="@drawable/ic_back_arrow"
         app:tint="@color/blue_700" />
 
-    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/swallet_logo" android:scaleType="fitCenter" android:contentDescription="SWallet" />
+    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/swallet_launcher_symbol" android:scaleType="fitCenter" android:contentDescription="SWallet" />
 
     <TextView
         android:id="@+id/headerTitle"

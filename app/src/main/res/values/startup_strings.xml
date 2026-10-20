@@ -1,0 +1,8 @@
+<resources>
+    <string name="startup_overline">MAKE EVERY DAY COUNT</string>
+    <string name="startup_headline">Your money.\nYour momentum.</string>
+    <string name="startup_subtitle">A little progress, every day.</string>
+    <string name="startup_money">Money</string>
+    <string name="startup_tasks">Tasks</string>
+    <string name="startup_goals">Goals</string>
+</resources>

@@ -30,6 +30,7 @@
         <!-- Splash screen as launcher -->
         <activity
             android:name=".activities.SplashActivity"
+            android:theme="@style/Theme.FinanceTracker.Startup"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

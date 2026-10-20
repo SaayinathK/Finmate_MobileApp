@@ -299,7 +299,7 @@ abstract class WalletScreen : AppCompatActivity() {
         }
         val toolbar = row().apply { setPadding(dp(12), dp(4), dp(12), dp(4)); setBackgroundColor(surface); minimumHeight = dp(60) }
         if (nav) toolbar.addView(ImageView(this).apply {
-            setImageResource(R.drawable.swallet_logo); contentDescription = "SWallet"; scaleType = ImageView.ScaleType.FIT_CENTER
+            setImageResource(R.drawable.swallet_launcher_symbol); contentDescription = "SWallet"; scaleType = ImageView.ScaleType.FIT_CENTER
             background = shape(softBlue, 12); setPadding(dp(2), dp(2), dp(2), dp(2))
         }, LinearLayout.LayoutParams(dp(40), dp(40)))
         else toolbar.addView(iconButton(R.drawable.ic_back_arrow, "Back") { finish() }, LinearLayout.LayoutParams(dp(48), dp(48)))

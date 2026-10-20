@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="startup_logo_size">176dp</dimen>
+    <dimen name="startup_runner_height">208dp</dimen>
+</resources>
