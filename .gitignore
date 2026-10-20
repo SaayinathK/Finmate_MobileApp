@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local Kotlin state and emulator diagnostics are not release artifacts.
+.kotlin/
+/artifacts/swallet-emulator-*.txt
+/.idea/shelf/
