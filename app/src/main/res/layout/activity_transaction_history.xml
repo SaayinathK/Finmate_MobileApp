@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@drawable/app_background_gradient">
 
     <!-- Header -->
     <include
@@ -58,16 +58,16 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:contentDescription="@string/filter_tabs"
-        android:background="@color/blue_500"
+        android:background="@color/glass_surface"
         app:layout_constraintTop_toBottomOf="@id/dateFilterRow"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:tabGravity="fill"
         app:tabMode="fixed"
-        app:tabIndicatorColor="@android:color/white"
-        app:tabIndicatorHeight="4dp"
-        app:tabSelectedTextColor="@android:color/white"
-        app:tabTextColor="#D0D0D0" />
+        app:tabIndicatorColor="@color/blue_700"
+        app:tabIndicatorHeight="3dp"
+        app:tabSelectedTextColor="@color/blue_700"
+        app:tabTextColor="@color/ink_secondary" />
 
     <!-- 🧾 Transaction List -->
     <androidx.recyclerview.widget.RecyclerView

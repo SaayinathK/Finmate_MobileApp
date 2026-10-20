@@ -86,7 +86,7 @@ class ExportImportActivity : AppCompatActivity() {
             exportRequestCode -> if (resultCode == Activity.RESULT_OK) exportToExcel(uri)
             importRequestCode -> if (resultCode == Activity.RESULT_OK) {
                 importFromExcel(uri)
-                displayImportedFileNames(uri)
+
             }
         }
     }
@@ -148,73 +148,39 @@ class ExportImportActivity : AppCompatActivity() {
 
 
     private fun importFromExcel(uri: Uri) {
-        lifecycleScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch {
+            binding.importButton.isEnabled = false
             try {
-                // ✅ Check if there is already an imported file
-                if (importedFileList.isNotEmpty()) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@ExportImportActivity, "You have already imported a file.", Toast.LENGTH_SHORT).show()
+                val parsed = withContext(Dispatchers.IO) {
+                    requireNotNull(contentResolver.openInputStream(uri)) { "Could not open file" }.use { input ->
+                        WorkbookFactory.create(input).use { workbook -> com.example.financetracker.utils.AccountWorkbook.read(workbook) }
                     }
-                    return@launch
                 }
-
-                val transactions = mutableListOf<Transaction>()
-                contentResolver.openInputStream(uri)?.use { input ->
-                    val workbook = WorkbookFactory.create(input)
-                    for (sheetIndex in 0 until workbook.numberOfSheets) {
-                        val sheet = workbook.getSheetAt(sheetIndex)
-                        if (sheet.physicalNumberOfRows == 0) continue
-
-                        val uniqueTransactions = mutableSetOf<String>()
-
-                        for (i in 1..sheet.lastRowNum) {
-                            val row = sheet.getRow(i) ?: continue
-                            val title = row.getCell(0)?.stringCellValue ?: "Unknown"
-                            val amount = row.getCell(1)?.numericCellValue ?: 0.0
-                            val category = row.getCell(2)?.stringCellValue ?: "Unknown"
-                            val date = row.getCell(3)?.stringCellValue ?: "Unknown"
-                            val type = row.getCell(4)?.stringCellValue ?: "Unknown"
-
-                            val uniqueKey = "$title-$amount-$category-$date-$type"
-                            if (uniqueTransactions.contains(uniqueKey)) continue // Skip duplicates
-
-                            transactions.add(
-                                Transaction(
-                                    title = title,
-                                    amount = amount,
-                                    category = category,
-                                    date = date,
-                                    type = type
-                                )
-                            )
-                            uniqueTransactions.add(uniqueKey)
-                        }
-                    }
-                    workbook.close()
-                }
-
-                // ✅ Replace existing transactions with the new imported ones
-                db.transactionDao().deleteAll()
-                if (transactions.isNotEmpty()) {
-                    db.transactionDao().insertAll(transactions)
-                }
-
-                withContext(Dispatchers.Main) {
-                    // ✅ Display the imported file name only once
-                    if (importedFileList.isEmpty()) {
-                        displayImportedFileNames(uri)
-                    }
-                    Toast.makeText(this@ExportImportActivity, "Imported successfully! Existing transactions replaced.", Toast.LENGTH_SHORT).show()
+                if (parsed.recognisedSheets == 0 || parsed.transactions.isEmpty()) {
+                    AlertDialog.Builder(this@ExportImportActivity).setTitle("No valid transactions found")
+                        .setMessage("Use a SWallet export with Title, Amount, Category, Date and Type columns, or your side-by-side Date, Subject and Amount income and expense sheet. Dates must include a year. No existing data was changed.")
+                        .setPositiveButton("OK", null).show()
+                } else {
+                    val existing = db.transactionDao().getAllTransactionsRaw()
+                    val additions = com.example.financetracker.utils.AccountWorkbook.newEntries(existing, parsed.transactions)
+                    AlertDialog.Builder(this@ExportImportActivity).setTitle("Review Excel import")
+                        .setMessage("${additions.size} new transactions to add.\n${parsed.transactions.size - additions.size} entries already present.\n${parsed.skippedRows} incomplete or invalid entries skipped.\n\nYour existing accounts will be kept. Side-by-side sheet entries use the Other category; you can categorise them later.")
+                        .setPositiveButton("Import") { _, _ ->
+                            lifecycleScope.launch {
+                                try {
+                                    // A batch insert is atomic and does not replace existing accounts.
+                                    db.transactionDao().insertAll(additions)
+                                    displayImportedFileNames(uri)
+                                    Toast.makeText(this@ExportImportActivity, "Added ${additions.size} transactions", Toast.LENGTH_LONG).show()
+                                } catch (_: Exception) { Toast.makeText(this@ExportImportActivity, "Could not import. Existing accounts were kept.", Toast.LENGTH_LONG).show() }
+                            }
+                        }.setNegativeButton("Cancel", null).show()
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@ExportImportActivity, "Import failed: ${e.message}", Toast.LENGTH_LONG).show()
-                }
-            }
+                Toast.makeText(this@ExportImportActivity, "Import failed: ${e.message}. Existing accounts were kept.", Toast.LENGTH_LONG).show()
+            } finally { binding.importButton.isEnabled = true }
         }
     }
-
-    // ✅ Display the imported file name only once
     private fun displayImportedFileNames(uri: Uri) {
         val fileName = getFileNameFromUri(uri) ?: "imported_file.xlsx"
         binding.importedFilesLabel.visibility = View.VISIBLE

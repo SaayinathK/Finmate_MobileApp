@@ -1,0 +1,3 @@
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetTaskTitle" android:layout_width="match_parent" android:layout_height="44dp"
+    android:gravity="center_vertical" android:textSize="14sp" android:maxLines="1" android:ellipsize="end" android:textColor="#182B48" />

@@ -1,157 +1,81 @@
 package com.example.financetracker.activities
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
-import com.example.financetracker.fragments.LoansListFragment
-import com.google.android.material.tabs.TabLayoutMediator
-import android.view.LayoutInflater
-import android.widget.ArrayAdapter
-import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
-import com.example.financetracker.adapters.LoanAdapter
-import com.example.financetracker.dao.LoanDao
+import androidx.lifecycle.lifecycleScope
 import com.example.financetracker.database.AppDatabase
-import com.example.financetracker.databinding.ActivityLoansBinding
-import com.example.financetracker.dialogs.AddLoanDialog
+import com.example.financetracker.models.Loan
+import com.example.financetracker.R
+import com.example.financetracker.repository.LoanLedger
+import com.example.financetracker.ui.WalletScreen
+import com.example.financetracker.utils.PlannerRules
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
+import java.time.Instant
+import java.time.ZoneId
 
-class LoansActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityLoansBinding
-    private lateinit var loanDao: LoanDao
-    private val monthList = listOf(
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    )
-
-    private var selectedYear = Calendar.getInstance().get(Calendar.YEAR).toString()
-    private var selectedMonth = SimpleDateFormat("MMMM", Locale.getDefault()).format(Date())
-
-    // Cache latest loans from DB Flow so we can re-filter on month/year change
-    private var allLoansCache: List<com.example.financetracker.models.Loan> = emptyList()
-
+class LoansActivity : WalletScreen() {
+    private val db by lazy { AppDatabase.getDatabase(this) }
+    private var mode = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoansBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-
-        // Setup header (back button and title)
-        val backArrow = findViewById<android.widget.ImageView>(com.example.financetracker.R.id.backArrow)
-        val headerTitle = findViewById<android.widget.TextView>(com.example.financetracker.R.id.headerTitle)
-        headerTitle?.text = "Loans / Debts"
-        backArrow?.setOnClickListener { finish() }
-
-        // Attach standard bottom navigation if present in layout
-        com.example.financetracker.ui.BottomNavHelper.attach(this)
-
-        val database = AppDatabase.getDatabase(this)
-        loanDao = database.loanDao()
-
-        // Set up pager with tabs: All |Received | Givven
-        val pagerAdapter = LoansPagerAdapter(this)
-        val viewPager = binding.viewPager
-        viewPager.adapter = pagerAdapter
-        // Keep all fragments created so each page gets data updates immediately
-        viewPager.offscreenPageLimit = pagerAdapter.itemCount
-
-        TabLayoutMediator(binding.filterTabLayout, viewPager) { tab, position ->
-            tab.text = when (position) {
-                0 -> "All"
-                1 -> "Received"
-                else -> "Givven"
-            }
-        }.attach()
-
-        // Setup date range picker similar to TransactionHistoryActivity
-        binding.btnSelectDateRange.setOnClickListener {
-            showMonthYearDialog { adapter ->
-                // when month/year changed, reapply filter using cached loans
-                applyFilterAndUpdatePages(adapter)
+        mode = savedInstanceState?.getInt("mode") ?: 0
+        lifecycleScope.launch { db.loanDao().getAllLoans().collect { render(it) } }
+    }
+    override fun onSaveInstanceState(outState: Bundle) { outState.putInt("mode", mode); super.onSaveInstanceState(outState) }
+    private fun render(loans: List<Loan>) {
+        screen("Loans", floatingAction = "Add loan" to {
+            startActivity(android.content.Intent(this, AddTransactionActivity::class.java).putExtra("createLoan", true))
+        })
+        val owed = loans.filter { it.type != "RECEIVED" }.sumOf { it.amount }
+        val owe = loans.filter { it.type == "RECEIVED" }.sumOf { it.amount }
+        card().apply {
+            val totals = row()
+            totals.addView(column().apply { addView(text("To collect", 12, muted)); addView(text(money(owed), 20, green, true)) }, android.widget.LinearLayout.LayoutParams(0, -2, 1f))
+            totals.addView(column().apply { addView(text("To repay", 12, muted)); addView(text(money(owe), 20, red, true)) }, android.widget.LinearLayout.LayoutParams(0, -2, 1f))
+            addView(totals)
+        }
+        choices(content, listOf("All", "To collect", "To repay", "Settled"), mode) { mode = it; render(loans) }
+        val filtered = loans.filter { when(mode) { 1 -> it.type != "RECEIVED" && it.amount > 0; 2 -> it.type == "RECEIVED" && it.amount > 0; 3 -> it.amount <= 0; else -> it.amount > 0 } }
+        if (filtered.isEmpty()) emptyState(R.drawable.art_wallet, "No loans", "Track borrowing and lending")
+        filtered.groupBy { it.personName.trim().lowercase() }.forEach { (_, entries) ->
+            val person = entries.first().personName
+            section(person)
+            entries.sortedByDescending { it.date }.forEach { loan ->
+                val paying = loan.type == "RECEIVED"
+                card().apply {
+                    addView(text(if (loan.amount <= 0) "✓ Settled" else if (paying) "To repay" else "To collect", 13, if (paying) red else green, true))
+                    addView(text(money(loan.amount), 24, ink, true))
+                    addView(text("Original: ${money(loan.originalAmount)} · ${PlannerRules.displayDate(Instant.ofEpochMilli(loan.date).atZone(ZoneId.systemDefault()).toLocalDate())}", 12, muted))
+                    loan.note?.takeIf { it.isNotBlank() }?.let { addView(text(it, 14, muted)) }
+                    if (loan.amount > 0) actions(this, (if (paying) "Repay" else "Collect") to { settle(loan) }, "History" to { showHistory(loan) })
+                    else button("History", this, true) { showHistory(loan) }
+                }
             }
         }
-
-        updateSelectedDateDisplay()
-
-        // Start a single collector that updates cache and pages whenever DB changes
-        startLoanCollector(pagerAdapter)
-
-        binding.addLoanBtn.setOnClickListener {
-            showAddLoanDialog()
-        }
     }
-
-    private fun loadLoans(pagerAdapter: LoansPagerAdapter) {
-        // no-op; collection happens in startLoanCollector
+    private fun settle(loan: Loan) {
+        val form = column().apply { setPadding(dp(24), dp(8), dp(24), dp(8)) }
+        form.addView(text("Outstanding: ${money(loan.amount)}", 17, ink, true))
+        val amount = field(form, "Amount", "%.2f".format(java.util.Locale.US, loan.amount), true)
+        val dialog = AlertDialog.Builder(this).setTitle(if (loan.type == "RECEIVED") "Return money to ${loan.personName}" else "Collect from ${loan.personName}").setView(form)
+            .setPositiveButton("Record payment", null).setNegativeButton("Cancel", null).create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val cents = PlannerRules.cents(amount.text.toString())
+                if (cents == null || cents / 100.0 > loan.amount + 0.000001) { amount.error = "Enter an amount up to ${money(loan.amount)}"; return@setOnClickListener }
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                lifecycleScope.launch {
+                    try { LoanLedger(db).settle(loan.id, cents / 100.0); toast("Payment recorded"); dialog.dismiss() }
+                    catch (e: Exception) { amount.error = e.message ?: "Could not record payment"; dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true }
+                }
+            }
+        }; dialog.show()
     }
-
-    private fun startLoanCollector(pagerAdapter: LoansPagerAdapter) {
+    private fun showHistory(loan: Loan) {
         lifecycleScope.launch {
-            loanDao.getAllLoans().collect { loans ->
-                allLoansCache = loans
-                applyFilterAndUpdatePages(pagerAdapter)
-            }
+            val entries = db.transactionDao().getAllTransactionsRaw().filter { it.loanId == loan.id }.sortedBy { it.id }
+            val lines = entries.joinToString("\n\n") { "${it.date} · ${it.title}\n${it.type}: ${money(kotlin.math.abs(it.amount))}" }
+            AlertDialog.Builder(this@LoansActivity).setTitle(loan.personName).setMessage("Original: ${money(loan.originalAmount)}\nOutstanding: ${money(loan.amount)}\n\n" + lines.ifBlank { "No linked payments" }).setPositiveButton("Done", null).show()
         }
-    }
-
-    private fun applyFilterAndUpdatePages(pagerAdapter: LoansPagerAdapter) {
-        val monthFormatter = SimpleDateFormat("MMMM", Locale.getDefault())
-        val yearFormatter = SimpleDateFormat("yyyy", Locale.getDefault())
-
-        val filtered = allLoansCache.filter { loan ->
-            try {
-                val date = Date(loan.date)
-                monthFormatter.format(date) == selectedMonth && yearFormatter.format(date) == selectedYear
-            } catch (e: Exception) {
-                false
-            }
-        }
-
-        pagerAdapter.setLoans(filtered)
-    }
-
-    private fun updateSelectedDateDisplay() {
-        binding.textSelectedMonthYear.text = "$selectedMonth $selectedYear"
-    }
-
-    private fun showMonthYearDialog(onApply: (LoansPagerAdapter) -> Unit) {
-        val dialogLayout = LayoutInflater.from(this).inflate(com.example.financetracker.R.layout.dialog_month_year_filter, null)
-        val monthSpinner = dialogLayout.findViewById<Spinner>(com.example.financetracker.R.id.spinnerMonth)
-        val yearSpinner = dialogLayout.findViewById<Spinner>(com.example.financetracker.R.id.spinnerYear)
-
-        val monthAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, monthList)
-        monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        monthSpinner.adapter = monthAdapter
-        monthSpinner.setSelection(monthList.indexOf(selectedMonth))
-
-        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        val yearList = (currentYear downTo 2015).map { it.toString() }
-        val yearAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, yearList)
-        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        yearSpinner.adapter = yearAdapter
-        yearSpinner.setSelection(yearList.indexOf(selectedYear))
-
-        AlertDialog.Builder(this)
-            .setTitle("Filter by Month & Year")
-            .setView(dialogLayout)
-            .setPositiveButton("Apply") { _, _ ->
-                selectedMonth = monthSpinner.selectedItem.toString()
-                selectedYear = yearSpinner.selectedItem.toString()
-                updateSelectedDateDisplay()
-                val adapter = binding.viewPager.adapter
-                if (adapter is LoansPagerAdapter) onApply(adapter)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun showAddLoanDialog() {
-        val dialog = AddLoanDialog()
-        dialog.show(supportFragmentManager, "AddLoanDialog")
     }
 }

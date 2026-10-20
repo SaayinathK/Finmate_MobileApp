@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:text="sample_file.xlsx"
-        android:textColor="#000000"
+        android:textColor="@color/ink_primary"
         android:textSize="16sp"
         android:fontFamily="@font/inter_medium" />
 </LinearLayout>

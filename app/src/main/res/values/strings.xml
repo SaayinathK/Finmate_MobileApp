@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">FinMate</string>
+    <string name="app_name">SWallet</string>
     <string name="transaction_history">Transaction History</string>
     <string name="transaction_list">List of all recorded transactions</string>
     <string name="start">Get Started</string>
@@ -29,4 +29,10 @@
     <string name="export_import">Export / Import</string>
     <string name="loan_amount">LKR %1$s</string>
     <string name="filter_tabs">Filter tabs</string>
+    <string name="shortcut_task">Add task</string>
+    <string name="shortcut_transaction">Add transaction</string>
+    <string name="shortcut_loan">Add loan</string>
+    <string name="shortcut_today">Today’s tasks</string>
+    <string name="widget_title">Today’s tasks</string>
+    <string name="widget_description">SWallet daily checklist</string>
 </resources>

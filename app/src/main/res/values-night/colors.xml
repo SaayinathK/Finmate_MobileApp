@@ -1,0 +1,17 @@
+<resources>
+    <color name="app_background">#101824</color>
+    <color name="wallet_surface">#1B2736</color>
+    <color name="wallet_border">#2E3F53</color>
+    <color name="wallet_soft_blue">#223B58</color>
+    <color name="ink_primary">#EDF3FC</color>
+    <color name="ink_secondary">#A6B6CA</color>
+    <color name="blue_700">#72B4FF</color>
+    <color name="blue_500">#72B4FF</color>
+    <color name="light_gray">#A6B6CA</color>
+    <color name="gray_600">#A6B6CA</color>
+    <color name="mint_soft">#193E37</color>
+    <color name="lavender_soft">#283652</color>
+    <color name="glass_surface">#1B2736</color>
+    <color name="glass_border">#2E3F53</color>
+    <color name="green">#5CDBAF</color>
+</resources>

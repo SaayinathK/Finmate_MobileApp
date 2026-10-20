@@ -1,0 +1,14 @@
+<resources>
+    <item name="insetsApplied" type="id" />
+    <item name="addAction" type="id" />
+    <item name="screenScroll" type="id" />
+    <item name="screenTitle" type="id" />
+    <item name="periodSelector" type="id" />
+    <item name="periodDay" type="id" />
+    <item name="periodWeek" type="id" />
+    <item name="periodMonth" type="id" />
+    <item name="periodDate" type="id" />
+    <item name="monthYearPickerYear" type="id" />
+    <item name="deleteVerification" type="id" />
+    <item name="categoryInput" type="id" />
+</resources>

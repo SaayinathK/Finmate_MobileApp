@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@drawable/app_background_gradient">
 
     <LinearLayout
         android:id="@+id/loansContent"
@@ -61,13 +61,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:contentDescription="filter_tabs"
-            android:background="@color/blue_500"
+            android:background="@color/glass_surface"
             app:tabGravity="fill"
             app:tabMode="fixed"
-            app:tabIndicatorColor="@android:color/white"
-            app:tabIndicatorHeight="4dp"
-            app:tabSelectedTextColor="@android:color/white"
-            app:tabTextColor="#D0D0D0" />
+            app:tabIndicatorColor="@color/blue_700"
+            app:tabIndicatorHeight="3dp"
+            app:tabSelectedTextColor="@color/blue_700"
+            app:tabTextColor="@color/ink_secondary" />
 
         <!-- ViewPager for tabs: All | To Receive | To Pay -->
         <androidx.viewpager2.widget.ViewPager2

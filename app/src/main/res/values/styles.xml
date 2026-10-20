@@ -1,4 +1,10 @@
 <resources>
+    <style name="WalletWindowAnimation">
+        <item name="android:activityOpenEnterAnimation">@anim/wallet_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/wallet_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/wallet_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/wallet_exit</item>
+    </style>
 
     <!-- Your existing themes and styles -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
@@ -16,4 +22,18 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="Theme.FinanceTracker.QuickEntry" parent="Theme.MaterialComponents.DayNight.Dialog">
+        <item name="colorPrimary">@color/blue_700</item>
+        <item name="colorSecondary">@color/blue_700</item>
+        <item name="colorSurface">@color/wallet_surface</item>
+        <item name="colorOnSurface">@color/ink_primary</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowShowWallpaper">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowCloseOnTouchOutside">false</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+    </style>
 </resources>

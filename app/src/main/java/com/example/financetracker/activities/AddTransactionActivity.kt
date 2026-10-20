@@ -1,287 +1,174 @@
 package com.example.financetracker.activities
 
-import android.app.DatePickerDialog
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.TextView
-import android.widget.ArrayAdapter
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.CheckBox
+import android.widget.LinearLayout
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
-import com.example.financetracker.R
+import androidx.room.withTransaction
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.models.Loan
-import com.example.financetracker.databinding.ActivityAddTransactionBinding
 import com.example.financetracker.models.Transaction
-import kotlinx.coroutines.Dispatchers
+import com.example.financetracker.repository.LoanLedger
+import com.example.financetracker.ui.WalletScreen
+import com.example.financetracker.utils.PlannerRules
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlinx.coroutines.flow.first
+import java.time.LocalDate
+import java.util.UUID
 
-
-class AddTransactionActivity : AppCompatActivity() {
-    private var currentTransaction: Transaction? = null
-
-    private lateinit var binding: ActivityAddTransactionBinding
-    private val calendar = Calendar.getInstance()
-    private val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-
-    private var editMode = false
-    private var editTransactionId: Int = -1
-
+open class AddTransactionActivity : WalletScreen() {
+    private val db by lazy { AppDatabase.getDatabase(this) }
+    private var current: Transaction? = null
+    private var date = LocalDate.now()
+    private var income = false
+    private var mode = 0
+    private var loanDirection = 0
+    private lateinit var titleInput: TextInputEditText
+    private lateinit var amountInput: TextInputEditText
+    private lateinit var categoryInput: com.google.android.material.textfield.MaterialAutoCompleteTextView
+    private lateinit var personInput: TextInputEditText
+    private lateinit var sharedInput: TextInputEditText
+    private lateinit var isLoan: CheckBox
+    private val splits = mutableListOf<Pair<TextInputEditText, TextInputEditText>>()
+    private var submitting = false
     override fun onCreate(savedInstanceState: Bundle?) {
-            // Set up back button in header
-            val backArrow = findViewById<View>(R.id.backArrow)
-            backArrow?.setOnClickListener { finish() }
         super.onCreate(savedInstanceState)
-        binding = ActivityAddTransactionBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        // Set header title dynamically (after setContentView)
-        val headerTitle = findViewById<TextView>(R.id.headerTitle)
-        headerTitle?.text = if (intent.getBooleanExtra("editMode", false)) "Edit Transaction" else "Add Transaction"
-
-        // Centralized bottom navigation
-        com.example.financetracker.ui.BottomNavHelper.attach(this)
-        setupCategoryDropdown()
-        setupDatePicker()
-        setupLoanOptions()
-        handleEditMode()
-        setupButtonListeners()
-    }
-
-    private fun setupLoanOptions() {
-        val loanTypes = listOf("GIVVEN", "RECEIVED")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, loanTypes)
-        binding.loanActionSpinner.setAdapter(adapter)
-
-        binding.createLoanCheckbox.setOnCheckedChangeListener { _, checked ->
-            binding.loanActionSpinner.visibility = if (checked) View.VISIBLE else View.GONE
-            if (checked) {
-                val titleText = binding.titleEditText.text.toString().trim()
-                if (titleText.isNotEmpty()) {
-                    binding.loanPersonEditText.visibility = View.GONE
-                } else {
-                    binding.loanPersonEditText.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            val edit = intent.getBooleanExtra("editMode", false)
+            current = if (edit) db.transactionDao().getTransactionById(intent.getIntExtra("transactionId", -1)) else null
+            if (edit && current == null) { toast("This transaction is no longer available"); finish(); return@launch }
+            date = savedInstanceState?.getString("date")?.let(LocalDate::parse) ?: current?.date?.let(PlannerRules::parseDate) ?: LocalDate.now()
+            income = savedInstanceState?.getBoolean("income") ?: (current?.type == "Income")
+            mode = savedInstanceState?.getInt("mode") ?: 0
+            loanDirection = savedInstanceState?.getInt("loanDirection") ?: 0
+            screen(if (edit) "Edit transaction" else if (intent.getBooleanExtra("createLoan", false)) "Add loan" else "Add transaction", nav = false)
+            if (current?.loanId != null || current?.splitGroup?.startsWith("bill:") == true) {
+                card().addView(text("Manage this entry in Loans.", 16, muted))
+                button("View loans") { open(LoansActivity::class.java); finish() }; return@launch
+            }
+            val form = card()
+            choices(form, listOf("Expense", "Income"), if (income) 1 else 0) { income = it == 1 }
+            titleInput = field(form, "Description", savedInstanceState?.getString("title") ?: current?.title ?: "")
+            amountInput = field(form, "Amount", savedInstanceState?.getString("amount") ?: current?.amount?.let { "%.2f".format(java.util.Locale.US, kotlin.math.abs(it)) } ?: "", numeric = true)
+            val categories = com.example.financetracker.utils.CategoryStore.all(this@AddTransactionActivity, db.transactionDao().getAllTransactionsRaw().map { it.category })
+            val categoryBox = com.google.android.material.textfield.TextInputLayout(this@AddTransactionActivity).apply {
+                hint = "Category"; boxBackgroundMode = com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE
+                boxBackgroundColor = surface; endIconMode = com.google.android.material.textfield.TextInputLayout.END_ICON_DROPDOWN_MENU
+                setBoxCornerRadii(dp(10).toFloat(), dp(10).toFloat(), dp(10).toFloat(), dp(10).toFloat())
+            }
+            categoryInput = com.google.android.material.textfield.MaterialAutoCompleteTextView(categoryBox.context).apply {
+                id = com.example.financetracker.R.id.categoryInput; threshold = 1; textSize = 15f; setTextColor(ink)
+                inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+                setSimpleItems(categories.toTypedArray())
+                setText(savedInstanceState?.getString("category") ?: current?.category ?: if (intent.getBooleanExtra("createLoan", false)) "Loans" else "", false)
+                minHeight = dp(48); setPadding(dp(12), dp(12), dp(12), dp(10))
+            }
+            categoryBox.addView(categoryInput); form.addView(categoryBox, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+            choices(form, categories.take(5), -1) { categoryInput.setText(categories[it], false) }
+            val dateButton = button("Date: ${PlannerRules.displayDate(date)}", form, true) { }
+            dateButton.setOnClickListener { pickDate(date) { date = it; dateButton.text = "Date: ${PlannerRules.displayDate(it)}" } }
+            isLoan = CheckBox(this@AddTransactionActivity).apply { text = "Borrowed or lent"; minHeight = dp(48); isChecked = savedInstanceState?.getBoolean("loan") ?: intent.getBooleanExtra("createLoan", false) }
+            if (!edit) form.addView(isLoan)
+            val loanFields = column()
+            personInput = field(loanFields, "Person", savedInstanceState?.getString("person") ?: "")
+            choices(loanFields, listOf("I borrowed", "I lent"), loanDirection) { loanDirection = it }
+            loanFields.addView(text("Borrowed = income. Lent = expense.", 13, muted))
+            form.addView(loanFields); loanFields.visibility = if (isLoan.isChecked) View.VISIBLE else View.GONE
+            val splitCard = card()
+            section("Split", parent = splitCard)
+            val categorySplits = column()
+            val shared = column()
+            choices(splitCard, listOf("Single", "Categories", "People"), mode) { mode = it; categorySplits.visibility = if (it == 1) View.VISIBLE else View.GONE; shared.visibility = if (it == 2) View.VISIBLE else View.GONE }
+            val splitRows = column()
+            val restoredNames = savedInstanceState?.getStringArrayList("splitNames")
+            val restoredAmounts = savedInstanceState?.getStringArrayList("splitAmounts")
+            repeat(restoredNames?.size ?: 2) { addSplit(splitRows, restoredNames?.get(it) ?: "", restoredAmounts?.get(it) ?: "") }
+            categorySplits.addView(splitRows)
+            button("+ Category", categorySplits, true) { addSplit(splitRows) }
+            button("Split equally", categorySplits, true) {
+                val cents = PlannerRules.cents(amountInput.text.toString())
+                if (cents == null || cents < splits.size) toast("Enter a total large enough for each share") else {
+                    PlannerRules.splitEqual(cents, splits.size).forEachIndexed { i, share -> splits[i].second.setText("%.2f".format(java.util.Locale.US, share / 100.0)) }
                 }
-                // When checked, if person name is entered, auto-fill title
-                binding.loanPersonEditText.setOnFocusChangeListener { _, hasFocus ->
-                    if (!hasFocus) {
-                        val name = binding.loanPersonEditText.text.toString().trim()
-                        if (name.isNotEmpty()) {
-                            binding.titleEditText.setText(name)
-                            binding.loanPersonEditText.visibility = View.GONE
+            }
+            sharedInput = field(shared, "Names (comma-separated)", savedInstanceState?.getString("shared") ?: "")
+            shared.addView(text("Split equally, including you. Collect others' shares in Loans; extra cents go to you first.", 14, muted))
+            splitCard.addView(categorySplits); splitCard.addView(shared)
+            categorySplits.visibility = if (mode == 1) View.VISIBLE else View.GONE; shared.visibility = if (mode == 2) View.VISIBLE else View.GONE
+            if (edit) { splitCard.visibility = View.GONE; mode = 0 }
+            isLoan.setOnCheckedChangeListener { _, checked -> loanFields.visibility = if (checked) View.VISIBLE else View.GONE; splitCard.visibility = if (checked) View.GONE else View.VISIBLE }
+            if (isLoan.isChecked) splitCard.visibility = View.GONE
+            button("Save") { save() }
+            if (edit) button("Delete", outlined = true) {
+                confirmDeletion("Delete transaction?", "This permanently removes the entry from your accounts.") {
+                    lifecycleScope.launch {
+                        try { db.transactionDao().deleteTransaction(current!!); toast("Transaction deleted"); finish() }
+                        catch (_: Exception) { toast("Could not delete transaction") }
+                    }
+                }
+            }
+            animateEntrance(form)
+        }
+    }
+    private fun addSplit(parent: LinearLayout, name: String = "", amount: String = "") {
+        val c = column()
+        val label = field(c, "Category ${splits.size + 1}", name)
+        val value = field(c, "Share amount", amount, true)
+        splits.add(label to value)
+        button("Remove", c, true) { if (splits.size > 2) { splits.remove(label to value); parent.removeView(c) } else toast("Keep at least two shares, or choose Single") }
+        parent.addView(c)
+    }
+    private fun save() {
+        if (submitting) return
+        val title = titleInput.text.toString().trim()
+        val cents = PlannerRules.cents(amountInput.text.toString())
+        val category = categoryInput.text.toString().trim()
+        if (title.isBlank()) { titleInput.error = "Enter a description"; return }
+        if (cents == null) { amountInput.error = "Enter a positive amount with up to 2 decimal places"; return }
+        if (category.isBlank()) { categoryInput.error = "Choose or enter a category"; return }
+        val person = personInput.text.toString().trim()
+        if (isLoan.isChecked && person.isBlank()) { personInput.error = "Enter the person's name"; return }
+        val shareValues = splits.map { it.first.text.toString().trim() to PlannerRules.cents(it.second.text.toString()) }
+        if (!isLoan.isChecked && mode == 1 && (shareValues.any { it.first.isBlank() || it.second == null } || shareValues.sumOf { it.second ?: 0L } != cents)) {
+            toast("Give each share a category and positive amount. Shares must add up exactly to the total."); return
+        }
+        val people = sharedInput.text.toString().split(",").map { it.trim() }.filter { it.isNotBlank() }
+        if (!isLoan.isChecked && mode == 2 && (income || people.isEmpty() || people.distinctBy { it.lowercase() }.size != people.size || people.size > 30 || cents < people.size + 1)) {
+            toast("Shared bills must be expenses. Enter 1–30 different names and an amount large enough for every share."); return
+        }
+        submitting = true
+        lifecycleScope.launch {
+            try {
+                db.withTransaction {
+                    val amount = cents / 100.0
+                    if (isLoan.isChecked) LoanLedger(db).create(person, amount, loanDirection == 0, title, date)
+                    else if (mode == 1) {
+                        val group = UUID.randomUUID().toString()
+                        shareValues.forEach { (label, share) -> db.transactionDao().insertTransaction(Transaction(title = title, amount = (share!! / 100.0) * if (income) 1 else -1, category = label, date = PlannerRules.displayDate(date), type = if (income) "Income" else "Expense", splitGroup = group)) }
+                    } else {
+                        val sharedBill = mode == 2
+                        val tx = Transaction(id = current?.id ?: 0, title = title, amount = if (income) amount else -amount, category = category, date = PlannerRules.displayDate(date), type = if (income) "Income" else "Expense", splitGroup = if (sharedBill) "bill:${UUID.randomUUID()}" else current?.splitGroup)
+                        if (current != null) db.transactionDao().updateTransaction(tx) else db.transactionDao().insertTransaction(tx)
+                        if (sharedBill) {
+                            val shares = PlannerRules.splitEqual(cents, people.size + 1)
+                            people.forEachIndexed { i, name -> db.loanDao().insertLoan(Loan(personName = name, amount = shares[i+1] / 100.0, type = "GIVVEN", note = "Shared bill: $title (${PlannerRules.displayDate(date)})")) }
                         }
                     }
                 }
-            } else {
-                binding.loanPersonEditText.visibility = View.GONE
-            }
+                com.example.financetracker.utils.CategoryStore.remember(this@AddTransactionActivity,
+                    if (!isLoan.isChecked && mode == 1) shareValues.map { it.first } else listOf(if (isLoan.isChecked) "Loans" else category))
+                toast("Transaction saved"); finish()
+            } catch (_: Exception) { submitting = false; toast("Could not save. Please try again.") }
         }
     }
-
-    // Bottom navigation handled centrally via BottomNavHelper
-
-    private fun setupCategoryDropdown() {
-        val categories = listOf("Food", "Transport", "Shopping", "Health", "Bills")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, categories)
-        binding.categorySpinner.setAdapter(adapter)
-
-        binding.categorySpinner.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) binding.categorySpinner.showDropDown()
-        }
-        binding.categorySpinner.setOnClickListener {
-            binding.categorySpinner.showDropDown()
-        }
-    }
-
-    private fun setupDatePicker() {
-        binding.dateTextView.setOnClickListener {
-            val datePicker = DatePickerDialog(
-                this,
-                { _, year, month, dayOfMonth ->
-                    calendar.set(year, month, dayOfMonth)
-                    val formatted = dateFormat.format(calendar.time)
-                    binding.dateTextView.text = formatted
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            )
-            datePicker.show()
-        }
-    }
-
-    // No-op: back button is handled via header include and findViewById
-
-    private fun handleEditMode() {
-        editMode = intent.getBooleanExtra("editMode", false)
-        if (editMode) {
-            editTransactionId = intent.getIntExtra("transactionId", -1)
-            lifecycleScope.launch {
-                val transaction: Transaction? = withContext(Dispatchers.IO) {
-                    AppDatabase.getDatabase(this@AddTransactionActivity)
-                        .transactionDao()
-                        .getTransactionById(editTransactionId)
-                }
-
-                transaction?.let {
-                    currentTransaction = it
-                    binding.titleEditText.setText(it.title)
-                    binding.amountEditText.setText(kotlin.math.abs(it.amount).toString())
-                    binding.dateTextView.text = it.date
-
-                    // Try to parse the date and set calendar (ensure future selection works correctly)
-                    try {
-                        calendar.time = dateFormat.parse(it.date)!!
-                    } catch (_: Exception) {}
-
-                    if (it.type == "Income") binding.incomeRadioButton.isChecked = true
-                    else binding.expenseRadioButton.isChecked = true
-                    binding.categorySpinner.setText(it.category, false)
-                }
-            }
-        } else {
-            val formatted = dateFormat.format(calendar.time)
-            binding.dateTextView.text = formatted
-        }
-    }
-
-    private fun setupButtonListeners() {
-        // Show delete button only in edit mode
-        if (editMode) {
-            binding.root.findViewById<View>(R.id.deleteButton)?.visibility = View.VISIBLE
-            binding.root.findViewById<View>(R.id.deleteButton)?.setOnClickListener {
-                // Step 1: Confirm deletion
-                androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("Delete Transaction")
-                    .setMessage("Are you sure you want to delete this transaction? This may also affect related loans.")
-                    .setPositiveButton("Delete") { _, _ ->
-                        // Step 2: Confirm again
-                        androidx.appcompat.app.AlertDialog.Builder(this)
-                            .setTitle("Confirm Delete")
-                            .setMessage("This action cannot be undone. Do you really want to delete?")
-                            .setPositiveButton("Yes, Delete") { _, _ ->
-                                lifecycleScope.launch {
-                                    withContext(Dispatchers.IO) {
-                                        currentTransaction?.let { tx ->
-                                            val db = AppDatabase.getDatabase(this@AddTransactionActivity)
-                                            db.transactionDao().deleteTransaction(tx)
-                                            // Delete related loan if present
-                                            val allLoansFlow = db.loanDao().getAllLoans()
-                                            val allLoans: List<com.example.financetracker.models.Loan> = allLoansFlow.first()
-                                            val relatedLoans = allLoans.filter { loan: com.example.financetracker.models.Loan ->
-                                                loan.personName == tx.title && Math.abs(loan.amount) == Math.abs(tx.amount) && loan.note == tx.title
-                                            }
-                                            relatedLoans.forEach { loan: com.example.financetracker.models.Loan ->
-                                                db.loanDao().deleteLoanById(loan.id)
-                                            }
-                                        }
-                                    }
-                                    Toast.makeText(this@AddTransactionActivity, "Transaction deleted", Toast.LENGTH_SHORT).show()
-                                    startActivity(Intent(this@AddTransactionActivity, TransactionHistoryActivity::class.java))
-                                    finish()
-                                }
-                            }
-                            .setNegativeButton("Cancel", null)
-                            .show()
-                    }
-                    .setNegativeButton("Cancel", null)
-                    .show()
-            }
-        } else {
-            binding.root.findViewById<View>(R.id.deleteButton)?.visibility = View.GONE
-        }
-        binding.saveButton.setOnClickListener {
-            val title = binding.titleEditText.text.toString().trim()
-            val amountStr = binding.amountEditText.text.toString().trim()
-            val category = binding.categorySpinner.text.toString().trim()
-            val date = binding.dateTextView.text.toString().trim()
-            val isIncome = binding.incomeRadioButton.isChecked
-
-            if (title.isEmpty() || amountStr.isEmpty() || category.isEmpty() || date.isEmpty()) {
-                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val amount = amountStr.toDoubleOrNull()
-            if (amount == null || amount <= 0) {
-                Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // If user chose to also create a Loan and selected a loan type,
-            // override the transaction polarity: "RECEIVED" -> Income, "GIVVEN" -> Expense
-            var effectiveIsIncome = isIncome
-            if (binding.createLoanCheckbox.isChecked) {
-                val loanTypeSelected = binding.loanActionSpinner.adapter?.getItem(binding.loanActionSpinner.listSelection) as? String
-                    ?: binding.loanActionSpinner.text.toString().trim()
-                if (loanTypeSelected == "RECEIVED") effectiveIsIncome = true
-                else if (loanTypeSelected == "GIVVEN") effectiveIsIncome = false
-            }
-
-            val finalAmount = if (effectiveIsIncome) amount else -amount
-            val type = if (effectiveIsIncome) "Income" else "Expense"
-
-            val formattedDate = try {
-                dateFormat.parse(date)?.let { dateFormat.format(it) } ?: date
-            } catch (e: Exception) {
-                date // fallback
-            }
-
-            val transaction = Transaction(
-                id = if (editMode) editTransactionId else 0,
-                title = title,
-                amount = finalAmount,
-                category = category,
-                date = formattedDate,
-                type = type
-            )
-
-            lifecycleScope.launch {
-                withContext(Dispatchers.IO) {
-                    val db = AppDatabase.getDatabase(this@AddTransactionActivity)
-                    val dao = db.transactionDao()
-                    if (editMode) dao.updateTransaction(transaction)
-                    else dao.insertTransaction(transaction)
-                    // If user requested to also create a loan entry, insert or update it
-                    if (binding.createLoanCheckbox.isChecked) {
-                        val loanTypeSelected = binding.loanActionSpinner.adapter?.getItem(binding.loanActionSpinner.listSelection) as? String
-                            ?: binding.loanActionSpinner.text.toString().trim()
-                        val person = binding.titleEditText.text.toString().trim()
-                        if (person.isNotEmpty() && (loanTypeSelected == "GIVVEN" || loanTypeSelected == "RECEIVED")) {
-                            val loan = com.example.financetracker.models.Loan(personName = person, amount = amount.toDouble(), type = loanTypeSelected, note = person)
-                            if (editMode) {
-                                // Try to find and update related loan
-                                val allLoansFlow = db.loanDao().getAllLoans()
-                                val allLoans: List<com.example.financetracker.models.Loan> = allLoansFlow.first()
-                                val relatedLoans = allLoans.filter { l: com.example.financetracker.models.Loan ->
-                                    l.personName == person && l.note == person
-                                }
-                                if (relatedLoans.isNotEmpty()) {
-                                    relatedLoans.forEach { oldLoan: com.example.financetracker.models.Loan ->
-                                        val updatedLoan = loan.copy(id = oldLoan.id)
-                                        db.loanDao().updateLoan(updatedLoan)
-                                    }
-                                } else {
-                                    db.loanDao().insertLoan(loan)
-                                }
-                            } else {
-                                db.loanDao().insertLoan(loan)
-                            }
-                        }
-                    }
-                }
-                Toast.makeText(this@AddTransactionActivity, "Transaction saved", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this@AddTransactionActivity, TransactionHistoryActivity::class.java))
-                finish()
-            }
-        }
-
-        binding.cancelButton.setOnClickListener {
-            finish()
-        }
+    override fun onSaveInstanceState(outState: Bundle) {
+        if (::titleInput.isInitialized) {
+            outState.putString("title", titleInput.text.toString()); outState.putString("amount", amountInput.text.toString()); outState.putString("category", categoryInput.text.toString())
+            outState.putString("person", personInput.text.toString()); outState.putString("shared", sharedInput.text.toString()); outState.putBoolean("loan", isLoan.isChecked)
+            outState.putBoolean("income", income); outState.putString("date", date.toString()); outState.putInt("mode", mode); outState.putInt("loanDirection", loanDirection)
+            outState.putStringArrayList("splitNames", ArrayList(splits.map { it.first.text.toString() })); outState.putStringArrayList("splitAmounts", ArrayList(splits.map { it.second.text.toString() }))
+        }; super.onSaveInstanceState(outState)
     }
 }

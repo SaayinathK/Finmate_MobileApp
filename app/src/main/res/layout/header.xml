@@ -1,22 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:gravity="center"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:background="@drawable/header_bg"
-    android:elevation="6dp">
+    android:elevation="2dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
+
+    <ImageView
+        android:id="@+id/backArrow"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:contentDescription="Back"
+        android:focusable="true"
+        android:padding="12dp"
+        android:src="@drawable/ic_back_arrow"
+        app:tint="@color/blue_700" />
+
+    <ImageView android:layout_width="44dp" android:layout_height="44dp" android:src="@drawable/swallet_logo" android:scaleType="fitCenter" android:contentDescription="SWallet" />
 
     <TextView
         android:id="@+id/headerTitle"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:text="Page Title"
-        android:textSize="26sp"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:textColor="#1976D2"
+        android:textColor="@color/blue_700"
         android:fontFamily="@font/inter_semibold"
-        android:gravity="center"
-        android:padding="12dp" />
+        android:gravity="start|center_vertical"
+        android:padding="12dp"
+        android:accessibilityHeading="true" />
 
 </LinearLayout>

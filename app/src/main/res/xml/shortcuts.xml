@@ -1,0 +1,14 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="add_task" android:enabled="true" android:icon="@drawable/ic_tasks" android:shortcutShortLabel="@string/shortcut_task">
+        <intent android:action="com.example.financetracker.quick.task" android:targetPackage="com.example.financetracker" android:targetClass="com.example.financetracker.activities.QuickEntryActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="add_transaction" android:enabled="true" android:icon="@drawable/ic_wallet_outline" android:shortcutShortLabel="@string/shortcut_transaction">
+        <intent android:action="com.example.financetracker.quick.transaction" android:targetPackage="com.example.financetracker" android:targetClass="com.example.financetracker.activities.QuickEntryActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="add_loan" android:enabled="true" android:icon="@drawable/ic_people_outline" android:shortcutShortLabel="@string/shortcut_loan">
+        <intent android:action="com.example.financetracker.quick.loan" android:targetPackage="com.example.financetracker" android:targetClass="com.example.financetracker.activities.QuickEntryActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="today_tasks" android:enabled="true" android:icon="@drawable/ic_history_outline" android:shortcutShortLabel="@string/shortcut_today">
+        <intent android:action="com.example.financetracker.quick.today" android:targetPackage="com.example.financetracker" android:targetClass="com.example.financetracker.activities.QuickEntryActivity" />
+    </shortcut>
+</shortcuts>

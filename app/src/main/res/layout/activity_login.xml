@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/signup_main_layout"
-    android:background="#1976D3"
+    android:background="@drawable/app_background_gradient"
     tools:context=".activities.LoginActivity"
     android:fillViewport="true">
 
@@ -26,7 +26,7 @@
                 android:layout_width="335dp"
                 android:layout_height="190dp"
                 android:contentDescription="App Logo"
-                android:src="@drawable/ic_app_logo_white1"
+                android:src="@drawable/swallet_logo"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -40,7 +40,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="32dp"
                 android:contentDescription="Back"
-                android:src="@drawable/ic_back_arrow_white"
+                android:src="@drawable/ic_back_arrow"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>

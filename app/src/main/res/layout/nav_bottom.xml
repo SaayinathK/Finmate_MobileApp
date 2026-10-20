@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/bottomNav"
     android:layout_width="match_parent"
-    android:layout_height="68dp"
+    android:layout_height="60dp"
     android:background="@drawable/nav_background_modern"
     android:orientation="horizontal"
     android:weightSum="5"
-    android:elevation="16dp"
-    android:paddingTop="8dp"
+    android:elevation="4dp"
+    android:paddingTop="4dp"
     android:paddingBottom="4dp">
 
     <!-- Home -->
@@ -19,14 +19,14 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="6dp"
+        android:padding="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp" android:padding="3dp"
             android:src="@drawable/ic_home"
             android:contentDescription="Home" />
 
@@ -36,7 +36,7 @@
             android:text="Home"
             android:textSize="11sp"
             android:fontFamily="sans-serif-medium"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <!-- History -->
@@ -47,15 +47,15 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="6dp"
+        android:padding="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_history"
+            android:layout_width="28dp"
+            android:layout_height="28dp" android:padding="3dp"
+            android:src="@drawable/ic_history_outline"
             android:contentDescription="History" />
 
         <TextView
@@ -64,7 +64,7 @@
             android:text="History"
             android:textSize="11sp"
             android:fontFamily="sans-serif-medium"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <!-- Analysis -->
@@ -75,24 +75,24 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="6dp"
+        android:padding="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_chart"
-            android:contentDescription="Analysis" />
+            android:layout_width="28dp"
+            android:layout_height="28dp" android:padding="3dp"
+            android:src="@drawable/ic_tasks"
+            android:contentDescription="Tasks" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Analysis"
+            android:text="Tasks"
             android:textSize="11sp"
             android:fontFamily="sans-serif-medium"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <!-- Loan -->
@@ -103,15 +103,15 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="6dp"
+        android:padding="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
-            android:src="@drawable/ic_loan"
+            android:layout_width="28dp"
+            android:layout_height="28dp" android:padding="3dp"
+            android:src="@drawable/ic_people_outline"
             android:contentDescription="Loans" />
 
         <TextView
@@ -120,7 +120,7 @@
             android:text="Loans"
             android:textSize="11sp"
             android:fontFamily="sans-serif-medium"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
     <!-- Settings -->
@@ -131,14 +131,14 @@
         android:layout_weight="1"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="6dp"
+        android:padding="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp" android:padding="3dp"
             android:src="@drawable/ic_settings"
             android:contentDescription="Settings" />
 
@@ -148,7 +148,7 @@
             android:text="Settings"
             android:textSize="11sp"
             android:fontFamily="sans-serif-medium"
-            android:layout_marginTop="4dp" />
+            android:layout_marginTop="2dp" />
     </LinearLayout>
 
 </LinearLayout>

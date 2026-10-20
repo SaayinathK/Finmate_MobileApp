@@ -43,6 +43,8 @@ object NotificationHelper {
 
     // 📢 Reusable notification for any purpose (logout, reset, etc.)
     fun sendNotification(context: Context, title: String, message: String) {
+        if (!context.getSharedPreferences("finmate_settings", Context.MODE_PRIVATE).getBoolean("notifications_enabled", true)) return
+        if (Build.VERSION.SDK_INT >= 33 && androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) return
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification) // Make sure this exists in res/drawable
             .setContentTitle(title)

@@ -34,9 +34,11 @@ class BottomNavBar @JvmOverloads constructor(
             findViewById<View>(itemId)?.setOnClickListener {
                 if (itemId != selectedItemId) {
                     setSelectedItem(itemId)
+                    findViewById<LinearLayout>(itemId)?.getChildAt(0)?.let { icon -> WalletMotion.confirm(icon) }
                     listener?.invoke(itemId)
                 }
             }
+            WalletMotion.press(findViewById(itemId))
         }
     }
 
@@ -60,6 +62,9 @@ class BottomNavBar @JvmOverloads constructor(
         val color = ContextCompat.getColor(context, colorRes)
 
         icon?.setColorFilter(color)
+        icon?.background = if (isSelected) android.graphics.drawable.GradientDrawable().apply {
+            setColor(ContextCompat.getColor(context, R.color.wallet_soft_blue)); cornerRadius = 9f * resources.displayMetrics.density
+        } else null
         text?.setTextColor(color)
     }
 
