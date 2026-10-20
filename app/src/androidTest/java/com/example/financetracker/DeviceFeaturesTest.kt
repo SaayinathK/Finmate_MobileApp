@@ -35,6 +35,8 @@ class DeviceFeaturesTest {
     private val context get() = instrument.targetContext
     private val db get() = AppDatabase.getDatabase(context)
     private fun views(root: View): List<View> = listOf(root) + if (root is ViewGroup) (0 until root.childCount).flatMap { views(root.getChildAt(it)) } else emptyList()
+    private fun widgetList(activity: Activity) = views(activity.findViewById(android.R.id.content))
+        .filterIsInstance<android.widget.ListView>().firstOrNull { it.id == R.id.widgetRows }
     private fun await(check: () -> Boolean) { repeat(80) { if (check()) return; Thread.sleep(100) }; assertTrue("UI timed out", check()) }
     private fun dialog(): View {
         check(Build.VERSION.SDK_INT >= 29)
@@ -196,9 +198,77 @@ class DeviceFeaturesTest {
             }
         }
     }
+    @Test fun widgetExpandsParentAndKeepsSubtaskCompletionSeparate() = withSignedInFixture {
+        val label = "QA widget family ${System.nanoTime()}"
+        val parent = runBlocking { db.taskDao().insert(DailyTask(title = label, startDate = LocalDate.now().toString(), reminderEnabled = false)).toInt() }
+        val child = runBlocking { db.taskDao().insert(DailyTask(title = "$label child", parentTaskId = parent, startDate = LocalDate.now().toString(), reminderEnabled = false)).toInt() }
+        val future = runBlocking { db.taskDao().insert(DailyTask(title = "$label future", parentTaskId = parent, startDate = LocalDate.now().plusDays(3).toString(), reminderEnabled = false)).toInt() }
+        var host: AppWidgetHost? = null
+        var widgetId = AppWidgetManager.INVALID_APPWIDGET_ID
+        try {
+            instrument.uiAutomation.adoptShellPermissionIdentity("android.permission.BIND_APPWIDGET")
+            instrument.runOnMainSync { host = AppWidgetHost(context, 4388) }
+            widgetId = host!!.allocateAppWidgetId()
+            val manager = AppWidgetManager.getInstance(context)
+            assertTrue(manager.bindAppWidgetIdIfAllowed(widgetId, ComponentName(context, TodayTasksWidget::class.java)))
+            runBlocking { TodayTasksWidget.updateAll(context) }
+            ActivityScenario.launch<Activity>(Intent(context, TaskEditorActivity::class.java)).use { scenario ->
+                await { var ready = false; scenario.onActivity { ready = it.findViewById<View>(R.id.taskSchedulePanel) != null }; ready }
+                scenario.onActivity { activity ->
+                    val hosted = host!!.createView(activity, widgetId, manager.getAppWidgetInfo(widgetId))
+                    (activity as WalletScreen).content.addView(hosted, 0, android.widget.LinearLayout.LayoutParams(-1, activity.dp(340)))
+                    host!!.startListening()
+                }
+                fun ids(): List<Int> {
+                    var result = emptyList<Int>()
+                    scenario.onActivity { activity -> widgetList(activity)?.adapter?.let { adapter -> result = (0 until adapter.count).map { adapter.getItemId(it).toInt() } } }
+                    return result
+                }
+                fun clickRow(id: Int, checkbox: Boolean = false) {
+                    scenario.onActivity { activity ->
+                        val list = requireNotNull(widgetList(activity))
+                        list.setSelection((0 until list.adapter.count).first { list.adapter.getItemId(it).toInt() == id })
+                    }
+                    await { var ready = false; scenario.onActivity { activity ->
+                        val list = widgetList(activity)
+                        ready = list != null && (0 until list.childCount).any { list.getItemIdAtPosition(it + list.firstVisiblePosition).toInt() == id }
+                    }; ready }
+                    scenario.onActivity { activity ->
+                        val list = requireNotNull(widgetList(activity))
+                        val position = (0 until list.adapter.count).first { list.adapter.getItemId(it).toInt() == id }
+                        val view = list.getChildAt(position - list.firstVisiblePosition)
+                        if (checkbox) view.findViewById<View>(R.id.widgetTaskCheck).performClick()
+                        else list.performItemClick(view, position, id.toLong())
+                    }
+                }
+                await { parent in ids() }
+                assertFalse(child in ids()); assertFalse(future in ids())
+                clickRow(parent)
+                await { child in ids() && future in ids() }
+                assertTrue(runBlocking { db.taskDao().completions().none { it.taskId == parent } })
+                clickRow(child, checkbox = true)
+                await { runBlocking { db.taskDao().completions().any { it.taskId == child } } }
+                assertTrue(runBlocking { db.taskDao().completions().none { it.taskId == parent } })
+                clickRow(parent)
+                await { child !in ids() && future !in ids() }
+            }
+        } finally {
+            host?.stopListening(); host?.deleteHost(); instrument.uiAutomation.dropShellPermissionIdentity()
+            context.getSharedPreferences("swallet_widget", android.content.Context.MODE_PRIVATE).edit().remove("expanded_$widgetId").commit()
+            runBlocking { DataMaintenance.deleteTask(db, parent) }
+        }
+    }
     @Test fun widgetRendersTodayAndTogglesCompletionWithoutOpeningApp() = withSignedInFixture {
         val title = "QA widget ${System.nanoTime()}"
-        val id = runBlocking { db.taskDao().insert(DailyTask(title = title, startDate = LocalDate.now().toString(), reminderEnabled = false)).toInt() }
+        val fixtureIds = runBlocking { (0..7).map { index ->
+            db.taskDao().insert(DailyTask(title = "$title #$index", startDate = LocalDate.now().toString(), reminderTime = "08:0$index", reminderEnabled = false)).toInt()
+        } }
+        val excludedIds = runBlocking { listOf(
+            db.taskDao().insert(DailyTask(title = "$title future", startDate = LocalDate.now().plusDays(1).toString())).toInt(),
+            db.taskDao().insert(DailyTask(title = "$title archived", startDate = LocalDate.now().toString(), active = false)).toInt(),
+            db.taskDao().insert(DailyTask(title = "$title other weekday", startDate = LocalDate.now().toString(), recurrence = "WEEKLY", weekdays = LocalDate.now().plusDays(1).dayOfWeek.value.toString())).toInt()
+        ) }
+        val id = fixtureIds.last()
         var host: AppWidgetHost? = null
         try {
             instrument.uiAutomation.adoptShellPermissionIdentity("android.permission.BIND_APPWIDGET")
@@ -207,21 +277,51 @@ class DeviceFeaturesTest {
             val manager = AppWidgetManager.getInstance(context)
             assertTrue(manager.bindAppWidgetIdIfAllowed(widgetId, ComponentName(context, TodayTasksWidget::class.java)))
             runBlocking { TodayTasksWidget.updateAll(context) }
-            ActivityScenario.launch<Activity>(Intent(context, HomeActivity::class.java)).use { scenario ->
-                await { var ready = false; scenario.onActivity { ready = it.findViewById<View>(R.id.periodDate) != null }; ready }
+            ActivityScenario.launch<Activity>(Intent(context, TaskEditorActivity::class.java)).use { scenario ->
+                await { var ready = false; scenario.onActivity { ready = it.findViewById<View>(R.id.taskSchedulePanel) != null }; ready }
                 scenario.onActivity { activity ->
                     val hosted = host!!.createView(activity, widgetId, manager.getAppWidgetInfo(widgetId))
                     (activity as WalletScreen).content.addView(hosted, 0, android.widget.LinearLayout.LayoutParams(-1, activity.dp(300)))
                     host!!.startListening()
                 }
                 await { var found = false; scenario.onActivity { found = views(it.findViewById(android.R.id.content)).filterIsInstance<TextView>().any { it.text.contains(title) } }; found }
+                var actualList = ""
+                try {
+                    await {
+                        var ready = false
+                        scenario.onActivity { activity ->
+                            val list = widgetList(activity)
+                            actualList = "${activity.javaClass.simpleName}, list=$list, count=${list?.adapter?.count}, ids=${list?.adapter?.let { adapter -> (0 until adapter.count).map { adapter.getItemId(it) } }}"
+                            ready = list?.adapter != null && list.adapter.count >= 8
+                        }
+                        ready
+                    }
+                } catch (error: AssertionError) { throw AssertionError(actualList, error) }
+                var position = -1
+                scenario.onActivity { activity ->
+                    val list = requireNotNull(widgetList(activity))
+                    val displayedIds = (0 until list.adapter.count).map { list.adapter.getItemId(it).toInt() }
+                    assertTrue(displayedIds.containsAll(fixtureIds)); assertTrue(displayedIds.none { it in excludedIds })
+                    position = displayedIds.indexOf(id)
+                    list.setSelection(position)
+                }
+                await { var ready = false; scenario.onActivity { activity -> ready = views(activity.findViewById(android.R.id.content)).filterIsInstance<TextView>().any { it.text.toString() == "$title #7" } }; ready }
                 shot("TodayTasksWidget")
-                scenario.onActivity { activity -> views(activity.findViewById(android.R.id.content)).filterIsInstance<TextView>().first { it.text.contains(title) }.performClick() }
+                scenario.onActivity { activity ->
+                    val list = requireNotNull(widgetList(activity))
+                    list.performItemClick(list.getChildAt(position - list.firstVisiblePosition), position, id.toLong())
+                }
                 await { runBlocking { db.taskDao().completions().any { it.taskId == id } } }
+                // Exercise the Android 8-11 service factory with the same database and filters.
+                val factory = com.example.financetracker.widget.TodayTasksFactory(context)
+                factory.onDataSetChanged()
+                val fallbackIds = (0 until factory.getCount()).map { factory.getItemId(it).toInt() }
+                assertTrue(fallbackIds.containsAll(fixtureIds)); assertTrue(fallbackIds.none { it in excludedIds })
+                factory.onDestroy()
             }
         } finally {
             host?.stopListening(); host?.deleteHost(); instrument.uiAutomation.dropShellPermissionIdentity()
-            runBlocking { DataMaintenance.deleteTask(db, id) }
+            runBlocking { (fixtureIds + excludedIds).forEach { DataMaintenance.deleteTask(db, it) } }
         }
     }
 }

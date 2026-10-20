@@ -8,11 +8,15 @@ import androidx.lifecycle.lifecycleScope
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.receiver.NotificationScheduler
 import com.example.financetracker.ui.WalletScreen
+import com.example.financetracker.ui.profileHeader
+import com.example.financetracker.R
+import com.example.financetracker.ui.AnimationCharacter
+import com.example.financetracker.ui.WalletGuideView
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 
-class SettingsActivity : WalletScreen() {
+open class SettingsActivity : WalletScreen() {
     private val db by lazy { AppDatabase.getDatabase(this) }
     private var renderJob: Job? = null
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); render() }
@@ -22,12 +26,34 @@ class SettingsActivity : WalletScreen() {
         renderJob = lifecycleScope.launch {
             val user = db.userProfileDao().getLoggedInUser()
             val prefs = getSharedPreferences("finmate_settings", MODE_PRIVATE)
-            screen("Settings")
-            val profile = card()
-            profile.addView(text(user?.fullName ?: "SWallet", 22, ink, true))
-            profile.addView(text(user?.email ?: "Saved on this device", 14, muted))
+            screen("Profile", "Account, tools & settings")
+            profileHeader(db, user) { render() }
+            section("Tools")
+            val tools = card()
+            button("Reports", tools, true) { open(ReportsActivity::class.java) }
+            button("Loans", tools, true) { open(LoansActivity::class.java) }
+            button("Goals & achievements", tools, true) { open(GoalsActivity::class.java) }
+            button("Reminders", tools, true) { open(ReminderSettingsActivity::class.java) }
+            button("Excel", tools, true) { open(ExportImportActivity::class.java) }
             section("Preferences")
             val c = card()
+            val character = AnimationCharacter.selected(this@SettingsActivity)
+            val characterName = getString(character.label)
+            val animationPreview = row()
+            animationPreview.addView(guide(WalletGuideView.Gesture.WELCOME, 96))
+            animationPreview.addView(column().apply {
+                addView(text(getString(R.string.animation_gender), 16, ink, true))
+                addView(text(getString(R.string.animation_character_summary), 13, muted))
+            }, android.widget.LinearLayout.LayoutParams(0, -2, 1f))
+            c.addView(animationPreview)
+            button(getString(R.string.animation_character_current, characterName), c, true) {
+                val characters = AnimationCharacter.entries
+                AlertDialog.Builder(this@SettingsActivity).setTitle(R.string.animation_gender)
+                    .setSingleChoiceItems(characters.map { getString(it.label) }.toTypedArray(), characters.indexOf(character)) { dialog, which ->
+                        AnimationCharacter.select(this@SettingsActivity, characters[which])
+                        dialog.dismiss(); render()
+                    }.setNegativeButton("Cancel", null).show()
+            }
             val currency = prefs.getString("currency", null) ?: db.budgetDao().getAllBudgets().first().firstOrNull()?.currency ?: "LKR"
             button("Currency: $currency", c, true) {
                 val options = arrayOf("LKR", "USD", "EUR", "INR", "GBP", "AUD")
@@ -56,14 +82,7 @@ class SettingsActivity : WalletScreen() {
                     android.content.ComponentName(this@SettingsActivity, com.example.financetracker.widget.TodayTasksWidget::class.java), null, null)
                 else toast("Long-press your home screen, open Widgets, then choose SWallet")
             }
-            button("Reminders", c, true) { open(ReminderSettingsActivity::class.java) }
             button("Monthly budget", c, true) { open(BudgetSetupActivity::class.java) }
-            section("Data")
-            val data = card()
-            data.addView(text("Import & export", 18, ink, true))
-            data.addView(text("Excel transactions and CSV reports.", 14, muted))
-            button("Excel", data, true) { open(ExportImportActivity::class.java) }
-            button("Reports", data, true) { open(ReportsActivity::class.java) }
             section("Delete data")
             val deletion = card()
             button("Delete all transactions", deletion, true) {

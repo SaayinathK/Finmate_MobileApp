@@ -11,4 +11,11 @@
     <item name="monthYearPickerYear" type="id" />
     <item name="deleteVerification" type="id" />
     <item name="categoryInput" type="id" />
+    <item name="taskName" type="id" />
+    <item name="taskSchedulePanel" type="id" />
+    <item name="taskScheduleDate" type="id" />
+    <item name="taskReminderEnabled" type="id" />
+    <item name="taskReminderTime" type="id" />
+    <item name="taskImportant" type="id" />
+    <item name="taskSubtasksPanel" type="id" />
 </resources>

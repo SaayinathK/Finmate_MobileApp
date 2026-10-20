@@ -140,12 +140,12 @@
             android:layout_width="28dp"
             android:layout_height="28dp" android:padding="3dp"
             android:src="@drawable/ic_settings"
-            android:contentDescription="Settings" />
+            android:contentDescription="Profile and settings" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Settings"
+            android:text="Profile"
             android:textSize="11sp"
             android:fontFamily="sans-serif-medium"
             android:layout_marginTop="2dp" />

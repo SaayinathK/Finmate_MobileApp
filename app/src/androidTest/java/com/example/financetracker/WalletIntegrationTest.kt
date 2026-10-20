@@ -17,6 +17,35 @@ import java.time.LocalDate
 @RunWith(AndroidJUnit4::class)
 class WalletIntegrationTest {
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
+    @Test fun migrationPreservesVersionSixTasksAndStartsUnselected() = runBlocking {
+        val name = "wallet-v6-task-migration.db"
+        context.deleteDatabase(name)
+        context.openOrCreateDatabase(name, 0, null).use { old ->
+            old.execSQL("CREATE TABLE transactions (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title TEXT NOT NULL, amount REAL NOT NULL, category TEXT NOT NULL, date TEXT NOT NULL, type TEXT NOT NULL, loanId INTEGER, loanEvent TEXT, splitGroup TEXT)")
+            old.execSQL("CREATE TABLE loans (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, personName TEXT NOT NULL, amount REAL NOT NULL, type TEXT NOT NULL, note TEXT, date INTEGER NOT NULL, originalAmount REAL NOT NULL DEFAULT 0)")
+            old.execSQL("CREATE TABLE budget (budgetKey TEXT PRIMARY KEY NOT NULL, amount REAL NOT NULL, currency TEXT NOT NULL)")
+            old.execSQL("CREATE TABLE user_profiles (email TEXT PRIMARY KEY NOT NULL, fullName TEXT NOT NULL, password TEXT NOT NULL, isLoggedIn INTEGER NOT NULL)")
+            old.execSQL("CREATE TABLE daily_tasks (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title TEXT NOT NULL, notes TEXT NOT NULL, startDate TEXT NOT NULL, recurrence TEXT NOT NULL, weekdays TEXT NOT NULL, reminderTime TEXT NOT NULL, reminderEnabled INTEGER NOT NULL, active INTEGER NOT NULL, createdAt INTEGER NOT NULL)")
+            old.execSQL("CREATE TABLE task_completions (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, taskId INTEGER NOT NULL, occurrenceDate TEXT NOT NULL, completedAt INTEGER NOT NULL, title TEXT NOT NULL, notes TEXT NOT NULL)")
+            old.execSQL("CREATE UNIQUE INDEX index_task_completions_taskId_occurrenceDate ON task_completions (taskId, occurrenceDate)")
+            old.execSQL("INSERT INTO daily_tasks VALUES (1,'Exam','Full notes','2026-10-19','WEEKLY','1,5','17:35',1,1,123)")
+            old.execSQL("INSERT INTO task_completions VALUES (1,1,'2026-10-19',456,'Exam snapshot','Original notes')")
+            old.version = 6
+        }
+        val database = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8).build()
+        try {
+            val task = database.taskDao().task(1)!!
+            assertEquals("Exam", task.title); assertEquals("Full notes", task.notes)
+            assertEquals("1,5", task.weekdays); assertEquals("17:35", task.reminderTime)
+            assertFalse(task.important); assertTrue(task.reminderEnabled)
+            assertNull(task.parentTaskId); assertNull(task.reminderDate); assertFalse(task.remindUntilDone)
+            assertEquals("23:59", task.deadlineTime)
+            assertTrue(database.goalDao().all().isEmpty())
+            assertEquals("Exam snapshot", database.taskDao().completions().single().title)
+            database.taskDao().update(task.copy(important = true))
+            assertTrue(database.taskDao().task(1)!!.important)
+        } finally { database.close(); context.deleteDatabase(name) }
+    }
     @Test fun migrationPreservesVersionFiveAccounts() = runBlocking {
         val name = "wallet-migration-test.db"
         context.deleteDatabase(name)
@@ -30,7 +59,7 @@ class WalletIntegrationTest {
             old.execSQL("INSERT INTO budget VALUES ('2026_October',20000,'LKR')")
             old.version = 5
         }
-        val db = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(AppDatabase.MIGRATION_5_6).build()
+        val db = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(AppDatabase.MIGRATION_5_6, AppDatabase.MIGRATION_6_7, AppDatabase.MIGRATION_7_8).build()
         try {
             assertEquals("Petrol", db.transactionDao().getAllTransactionsRaw().single().title)
             assertEquals(1500.0, db.loanDao().getById(1)!!.originalAmount, 0.0)

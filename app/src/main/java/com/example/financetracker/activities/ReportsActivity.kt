@@ -107,9 +107,10 @@ open class ReportsActivity : WalletScreen() {
             }
             if (!history) {
                 val tasks = db.taskDao().allTasks()
-                val done = db.taskDao().completions().filter { LocalDate.parse(it.occurrenceDate) in start..end }
+                val completions = db.taskDao().completions()
+                val done = completions.filter { LocalDate.parse(it.occurrenceDate) in start..end }
                 val days = generateSequence(start) { it.plusDays(1) }.takeWhile { it <= minOf(end, LocalDate.now()) }.toList()
-                val due = days.sumOf { d -> (tasks.filter { PlannerRules.occurs(it, d) }.map { it.id } + done.filter { it.occurrenceDate == d.toString() }.map { it.taskId }).distinct().size }
+                val due = (days.flatMap { d -> tasks.filter { PlannerRules.occurs(it, d, completions) }.map { it.id to PlannerRules.completionDate(it, d) } } + done.map { it.taskId to it.occurrenceDate }).distinct().size
                 card(color = Color.rgb(231,247,240)).apply {
                     section("Tasks", "${done.size} completed · $due due so far", this)
                     addView(text(if (due == 0) "No tasks due" else "${(done.size * 100 / due).coerceAtMost(100)}% completion", 22, green, true))
@@ -119,7 +120,7 @@ open class ReportsActivity : WalletScreen() {
                     val chart = BarChart(this@ReportsActivity).apply {
                         data = BarData(BarDataSet(days.mapIndexed { index, d ->
                             val completed = done.count { it.occurrenceDate == d.toString() }
-                            val pending = (tasks.count { PlannerRules.occurs(it, d) } - completed).coerceAtLeast(0)
+                            val pending = tasks.count { PlannerRules.occurs(it, d, completions) && !PlannerRules.isCompleted(it, d, completions) }
                             BarEntry(index.toFloat(), floatArrayOf(completed.toFloat(), pending.toFloat()))
                         }, "Tasks").apply {
                             colors = listOf(green, Color.rgb(206, 220, 237)); stackLabels = arrayOf("Completed", "Unfinished"); setDrawValues(false)

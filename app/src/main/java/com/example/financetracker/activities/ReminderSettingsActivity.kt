@@ -15,8 +15,21 @@ import com.example.financetracker.ui.WalletScreen
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import android.media.RingtoneManager
+import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
+import com.example.financetracker.utils.NotificationSound
 
 class ReminderSettingsActivity : WalletScreen() {
+    private val tonePicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            @Suppress("DEPRECATION")
+            val selected = result.data!!.getParcelableExtra<Uri>(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+            val value = when { selected == null -> "silent"; RingtoneManager.isDefault(selected) -> "default"; else -> selected.toString() }
+            NotificationScheduler.preferences(this).edit().putString("notification_tone", value).apply()
+            NotificationSound.changed(this); render()
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState); render() }
     override fun onResume() { super.onResume(); update(); render() }
     private fun update() {
@@ -45,6 +58,35 @@ class ReminderSettingsActivity : WalletScreen() {
         if (!precise && Build.VERSION.SDK_INT >= 31) button("Enable precise timing", status, true) {
             startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, android.net.Uri.parse("package:$packageName")))
         }
+        val sound = card(); section("Sound & tone", parent = sound)
+        sound.addView(CheckBox(this).apply {
+            text = "Notification sound"; setTextColor(ink); minHeight = dp(48)
+            isChecked = prefs.getBoolean("notification_sound", true)
+            setOnCheckedChangeListener { _, checked -> prefs.edit().putBoolean("notification_sound", checked).apply(); NotificationSound.changed(this@ReminderSettingsActivity); render() }
+        })
+        sound.addView(CheckBox(this).apply {
+            text = "Vibrate"; setTextColor(ink); minHeight = dp(48)
+            isChecked = prefs.getBoolean("notification_vibrate", true)
+            setOnCheckedChangeListener { _, checked -> prefs.edit().putBoolean("notification_vibrate", checked).apply(); NotificationSound.changed(this@ReminderSettingsActivity) }
+        })
+        button("Tone: ${NotificationSound.title(this)}", sound, true) {
+            val picker = Intent(RingtoneManager.ACTION_RINGTONE_PICKER)
+                .putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
+                .putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+                .putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+                .putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, NotificationSound.uri(this))
+                .putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "SWallet notification tone")
+            try { tonePicker.launch(picker) }
+            catch (_: android.content.ActivityNotFoundException) { toast("Use Android sound settings to select a tone") }
+        }.isEnabled = prefs.getBoolean("notification_sound", true)
+        button("Send test notification", sound, true) {
+            if (permission && master.isChecked) com.example.financetracker.utils.NotificationHelper.sendNotification(this, "SWallet sound check", "This is how your reminders will sound.")
+            else toast("Enable reminders and allow notifications first")
+        }
+        button("Android sound settings", sound, true) {
+            startActivity(Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName).putExtra(Settings.EXTRA_CHANNEL_ID, NotificationSound.channel(this)))
+        }
+        sound.addView(text("Silent mode, Do Not Disturb and Android notification settings can mute alerts.", 12, muted))
         for ((kind, label) in listOf("money" to "Transactions", "checklist" to "Checklist", "creation" to "Task planning")) {
             val c = card()
             val heading = row()

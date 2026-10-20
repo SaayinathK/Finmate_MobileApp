@@ -33,6 +33,8 @@ open class AddTransactionActivity : WalletScreen() {
     private lateinit var isLoan: CheckBox
     private val splits = mutableListOf<Pair<TextInputEditText, TextInputEditText>>()
     private var submitting = false
+    private var suggestionPanel: LinearLayout? = null
+    private var suggestionHistory: List<Transaction> = emptyList()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lifecycleScope.launch {
@@ -49,7 +51,7 @@ open class AddTransactionActivity : WalletScreen() {
                 button("View loans") { open(LoansActivity::class.java); finish() }; return@launch
             }
             val form = card()
-            choices(form, listOf("Expense", "Income"), if (income) 1 else 0) { income = it == 1 }
+            choices(form, listOf("Expense", "Income"), if (income) 1 else 0) { income = it == 1; renderSuggestions() }
             titleInput = field(form, "Description", savedInstanceState?.getString("title") ?: current?.title ?: "")
             amountInput = field(form, "Amount", savedInstanceState?.getString("amount") ?: current?.amount?.let { "%.2f".format(java.util.Locale.US, kotlin.math.abs(it)) } ?: "", numeric = true)
             val categories = com.example.financetracker.utils.CategoryStore.all(this@AddTransactionActivity, db.transactionDao().getAllTransactionsRaw().map { it.category })
@@ -100,6 +102,15 @@ open class AddTransactionActivity : WalletScreen() {
             if (edit) { splitCard.visibility = View.GONE; mode = 0 }
             isLoan.setOnCheckedChangeListener { _, checked -> loanFields.visibility = if (checked) View.VISIBLE else View.GONE; splitCard.visibility = if (checked) View.GONE else View.VISIBLE }
             if (isLoan.isChecked) splitCard.visibility = View.GONE
+            if (!edit && !intent.getBooleanExtra("createLoan", false)) {
+                suggestionHistory = db.transactionDao().getAllTransactionsRaw()
+                suggestionPanel = card(); renderSuggestions()
+                isLoan.setOnCheckedChangeListener { _, checked ->
+                    loanFields.visibility = if (checked) View.VISIBLE else View.GONE
+                    splitCard.visibility = if (checked) View.GONE else View.VISIBLE
+                    suggestionPanel?.visibility = if (checked) View.GONE else View.VISIBLE
+                }
+            }
             button("Save") { save() }
             if (edit) button("Delete", outlined = true) {
                 confirmDeletion("Delete transaction?", "This permanently removes the entry from your accounts.") {
@@ -110,6 +121,22 @@ open class AddTransactionActivity : WalletScreen() {
                 }
             }
             animateEntrance(form)
+        }
+    }
+    private fun renderSuggestions() {
+        val panel = suggestionPanel ?: return
+        panel.removeAllViews()
+        val suggestions = com.example.financetracker.utils.TransactionSuggestions.from(suggestionHistory, LocalDate.now(), if (income) "Income" else "Expense")
+        section("Suggested from your history", "Tap to fill description, category and usual amount. Review before saving.", panel)
+        if (suggestions.isEmpty()) panel.addView(text("Suggestions appear after you record the same transaction at least twice.", 13, muted))
+        suggestions.forEach { suggestion ->
+            button("${suggestion.title} · ${money(suggestion.amount)}", panel, true) {
+                titleInput.setText(suggestion.title)
+                amountInput.setText("%.2f".format(java.util.Locale.US, suggestion.amount))
+                categoryInput.setText(suggestion.category, false)
+                toast("Suggestion filled. Review and save when ready.")
+            }
+            panel.addView(text("${suggestion.cadence} · ${suggestion.category} · ${suggestion.count} past entries", 12, muted))
         }
     }
     private fun addSplit(parent: LinearLayout, name: String = "", amount: String = "") {

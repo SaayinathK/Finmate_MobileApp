@@ -82,21 +82,33 @@ class HomeActivity : WalletScreen() {
             }
             content.addView(stats)
             val today = LocalDate.now()
-            val due = tasks.filter { PlannerRules.occurs(it, today) }
-            val done = completions.count { c -> c.occurrenceDate == today.toString() && due.any { it.id == c.taskId } }
+            val due = tasks.filter { it.important && PlannerRules.occurs(it, today, completions) }
+            val done = due.count { PlannerRules.isCompleted(it, today, completions) }
             val checklist = card(color = Color.rgb(231, 240, 255))
             val taskHeader = row()
             taskHeader.addView(column().apply {
-                section("Today’s tasks", "$done / ${due.size} done", this)
+                section("Important today", "$done / ${due.size} done", this)
                 addView(ProgressBar(this@HomeActivity, null, android.R.attr.progressBarStyleHorizontal).apply {
                     max = due.size.coerceAtLeast(1)
                     progressTintList = android.content.res.ColorStateList.valueOf(blue)
                     setProgress(done, WalletMotion.enabled())
                 }, LinearLayout.LayoutParams(-1, dp(6)))
-                addView(text(if (due.isEmpty()) "No tasks today" else due.filter { t -> completions.none { it.taskId == t.id && it.occurrenceDate == today.toString() } }.take(2).joinToString("\n") { "○  ${it.title}" }.ifBlank { "All done" }, 12, muted))
+
             }, LinearLayout.LayoutParams(0, -2, 1f))
-            taskHeader.addView(illustration(R.drawable.art_checklist, 64))
+            taskHeader.addView(illustration(R.drawable.art_checklist, 96))
             checklist.addView(taskHeader)
+            if (due.isEmpty()) checklist.addView(text("No important tasks today. Mark tasks as important in their details.", 13, muted))
+            due.forEach { task ->
+                val completed = PlannerRules.isCompleted(task, today, completions)
+                val item = card(checklist).apply { tag = "todayTask:${task.id}" }
+                item.addView(text((if (completed) "\u2713  " else "\u25cb  ") + task.title, 14, if (completed) green else ink, true))
+                item.addView(text(PlannerRules.taskReminder(task), 12, muted))
+                item.minimumHeight = dp(56); item.isFocusable = true
+                item.contentDescription = "Edit ${task.title}"
+                item.setOnClickListener { startActivity(android.content.Intent(this@HomeActivity, TaskEditorActivity::class.java).putExtra("taskId", task.id)) }
+                WalletMotion.press(item)
+            }
+
             button("View tasks", checklist, true) { open(TasksActivity::class.java) }
             val budgetKey = "${anchor.year}_${anchor.format(DateTimeFormatter.ofPattern("MMMM", Locale.ENGLISH))}"
             val budget = db.budgetDao().getBudgetByKey(budgetKey)
@@ -108,8 +120,6 @@ class HomeActivity : WalletScreen() {
                 budgetCard.addView(text(if (monthExpense > budget.amount) "Over budget by ${money(monthExpense - budget.amount)}" else "${money(budget.amount - monthExpense)} left to spend", 13, if (monthExpense > budget.amount) red else green))
             }
             button("Edit budget", budgetCard, true) { open(BudgetSetupActivity::class.java) }
-            actions(content, "Reports" to { open(ReportsActivity::class.java) }, "Loans" to { open(LoansActivity::class.java) })
-            actions(content, "Reminders" to { open(ReminderSettingsActivity::class.java) }, "Excel" to { open(ExportImportActivity::class.java) })
             gap()
             section("Recent activity", "${filtered.size} transactions")
             if (filtered.isEmpty()) emptyState(R.drawable.art_wallet, "No transactions", "Add income or an expense")

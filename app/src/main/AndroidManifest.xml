@@ -83,6 +83,9 @@
         <activity android:name=".activities.TaskEditorActivity" />
         <activity android:name=".activities.ReportsActivity" />
         <activity android:name=".activities.ReminderSettingsActivity" />
+        <activity android:name=".activities.GoalsActivity" />
+        <activity android:name=".activities.GoalEditorActivity" />
+        <activity android:name=".activities.ProfileActivity" />
 
 
 
