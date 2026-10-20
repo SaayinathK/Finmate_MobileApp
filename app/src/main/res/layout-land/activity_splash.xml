@@ -1,0 +1,46 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="20dp" android:background="@drawable/startup_background">
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent"
+        android:fillViewport="true" android:scrollbars="none">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <LinearLayout android:id="@+id/startupBrand" android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="@string/startup_overline" android:textColor="@color/startup_accent"
+                    android:textSize="10sp" android:letterSpacing="0.12" />
+                <FrameLayout android:layout_width="144dp" android:layout_height="144dp" android:layout_marginTop="8dp"
+                    android:background="@drawable/startup_logo_halo">
+                    <ImageView android:id="@+id/logoImage" android:layout_width="@dimen/startup_logo_size"
+                        android:layout_height="@dimen/startup_logo_size" android:layout_gravity="center"
+                        android:src="@drawable/swallet_logo" android:scaleType="fitCenter" android:contentDescription="@string/app_name" />
+                </FrameLayout>
+                <TextView android:id="@+id/startupHeadline" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/startup_headline" android:gravity="center" android:textColor="@color/startup_ink"
+                    android:fontFamily="@font/inter_semibold" android:textSize="20sp" android:layout_marginTop="4dp" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+                android:layout_marginStart="20dp" android:orientation="vertical">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/startup_subtitle" android:gravity="center" android:textColor="@color/startup_muted"
+                    android:textSize="12sp" android:layout_marginBottom="12dp" />
+                <FrameLayout android:id="@+id/startupStage" android:layout_width="match_parent"
+                    android:layout_height="@dimen/startup_runner_height" android:background="@drawable/startup_runner_panel">
+                    <com.example.financetracker.ui.StartupRunnerView android:id="@+id/startupRunner"
+                        android:layout_width="match_parent" android:layout_height="match_parent"
+                        android:paddingHorizontal="12dp" android:paddingTop="8dp" android:paddingBottom="12dp"
+                        android:importantForAccessibility="no" />
+                </FrameLayout>
+                <LinearLayout android:id="@+id/startupFeatures" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:layout_marginTop="12dp" android:gravity="center">
+                    <TextView style="@style/StartupFeature" android:text="@string/startup_money" />
+                    <Space android:layout_width="8dp" android:layout_height="1dp" />
+                    <TextView style="@style/StartupFeature" android:text="@string/startup_tasks" />
+                    <Space android:layout_width="8dp" android:layout_height="1dp" />
+                    <TextView style="@style/StartupFeature" android:text="@string/startup_goals" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
