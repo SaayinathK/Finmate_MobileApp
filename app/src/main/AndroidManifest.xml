@@ -27,6 +27,7 @@
         android:theme="@style/Theme.FinanceTracker"
         tools:targetApi="31">
 
+        <activity android:name=".activities.PinActivity" android:exported="false" android:launchMode="singleTop" />
         <!-- Splash screen as launcher -->
         <activity
             android:name=".activities.SplashActivity"

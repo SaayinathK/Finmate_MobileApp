@@ -65,7 +65,8 @@ class SplashActivity : AppCompatActivity() {
     }
     private fun navigateWhenReady() {
         val next = destination ?: return
-        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || isFinishing) return
+        if (com.example.financetracker.security.AppLock.isLocked(this)) { return }
+        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) || isFinishing) { return }
         destination = null; startActivity(Intent(this, next)); finish()
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putLong("startedAt", startedAt); super.onSaveInstanceState(outState) }

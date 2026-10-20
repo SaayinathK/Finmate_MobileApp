@@ -46,6 +46,13 @@ class TodayTasksWidget : AppWidgetProvider() {
         }
     }
     private suspend fun handleInteraction(context: Context, intent: Intent) {
+        // Details and subtask expansion stay visible; changing completion requires an app unlock.
+        if (intent.getStringExtra("operation") != "expand" && com.example.financetracker.security.AppLock.isLocked(context)) {
+            kotlinx.coroutines.withContext(Dispatchers.Main) {
+                android.widget.Toast.makeText(context, "Unlock SWallet before changing tasks", android.widget.Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
         val today = LocalDate.now()
         val db = AppDatabase.getDatabase(context)
         // Ignore stale cached clicks, removed tasks, and signed-out widget sessions.
@@ -63,6 +70,7 @@ class TodayTasksWidget : AppWidgetProvider() {
             prefs.edit().putStringSet(key, expanded).apply()
         } else if (operation == null || operation == "complete") {
             db.withTransaction {
+                if (com.example.financetracker.security.AppLock.isLocked(context)) return@withTransaction
                 val task = db.taskDao().task(taskId)
                 val parentActive = task?.parentTaskId?.let { db.taskDao().task(it)?.active } != false
                 if (task != null && parentActive && PlannerRules.occurs(task, today)) {
@@ -131,6 +139,7 @@ class TodayTasksWidget : AppWidgetProvider() {
                 views.setTextColor(R.id.widgetFooter, muted)
                 views.setTextViewText(R.id.widgetFooter, when {
                     !signedIn -> "Open SWallet to sign in"
+                    com.example.financetracker.security.AppLock.isLocked(context) -> "Task details visible · Open SWallet to unlock changes"
                     tasks.isEmpty() -> "No tasks today · Tap + to add"
                     tasks.isNotEmpty() -> "Tap a task for subtasks · Check to complete"
                     else -> "Open checklist"

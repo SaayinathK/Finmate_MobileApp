@@ -5,7 +5,7 @@ import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 
 class WalletApplication : Application() {
-    override fun onCreate() { super.onCreate(); applyTheme(this) }
+    override fun onCreate() { super.onCreate(); applyTheme(this); com.example.financetracker.security.AppLock.install(this) }
     companion object {
         fun applyTheme(context: Context) {
             val mode = context.getSharedPreferences("finmate_settings", Context.MODE_PRIVATE).getString("theme", "system")

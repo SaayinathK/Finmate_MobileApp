@@ -84,6 +84,21 @@ open class SettingsActivity : WalletScreen() {
                 else toast("Long-press your home screen, open Widgets, then choose SWallet")
             }
             button("Monthly budget", c, true) { open(BudgetSetupActivity::class.java) }
+            section("Security")
+            val security = card()
+            val pinEnabled = com.example.financetracker.security.PinStore(this@SettingsActivity).enabled
+            security.addView(text(if (pinEnabled) "PIN lock enabled" else "Protect SWallet with a four-digit PIN", 16, ink, true))
+            security.addView(text("Task details remain visible in your widget. Unlock SWallet before changing tasks. Your account password can reset a forgotten PIN.", 13, muted))
+            if (pinEnabled) {
+                button("Lock now", security, true) {
+                    com.example.financetracker.security.AppLock.lock(this@SettingsActivity)
+                    com.example.financetracker.security.AppLock.requireUnlock(this@SettingsActivity)
+                }
+                button("Change PIN", security, true) { startActivity(Intent(this@SettingsActivity, PinActivity::class.java).putExtra(PinActivity.MODE, PinActivity.CHANGE)) }
+                button("Remove PIN lock", security, true) { startActivity(Intent(this@SettingsActivity, PinActivity::class.java).putExtra(PinActivity.MODE, PinActivity.DISABLE)) }
+            } else if (user != null) {
+                button("Enable PIN lock", security) { startActivity(Intent(this@SettingsActivity, PinActivity::class.java).putExtra(PinActivity.MODE, PinActivity.SETUP)) }
+            } else security.addView(text("Sign in to enable PIN lock.", 14, muted))
             section("Delete data")
             val deletion = card()
             button("Delete all transactions", deletion, true) {

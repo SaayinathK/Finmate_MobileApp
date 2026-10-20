@@ -10,23 +10,33 @@ import kotlinx.coroutines.launch
 
 /** External entry points live in a separate task; normal in-app forms stay full screen. */
 class QuickEntryActivity : AppCompatActivity() {
+    private var destination: Intent? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
+            override fun onResume(owner: androidx.lifecycle.LifecycleOwner) { navigateWhenReady() }
+        })
         val kind = intent.action?.substringAfterLast('.')
         if (kind !in setOf("task", "loan", "transaction", "today")) { finish(); return }
         lifecycleScope.launch {
             if (AppDatabase.getDatabase(this@QuickEntryActivity).userProfileDao().getLoggedInUser() == null) {
-                startActivity(Intent(this@QuickEntryActivity, LoginActivity::class.java).putExtra("pendingQuickAction", kind))
+                destination = Intent(this@QuickEntryActivity, LoginActivity::class.java).putExtra("pendingQuickAction", kind)
             } else {
                 val target = when (kind) {
                     "task" -> PopupTaskActivity::class.java
                     "today" -> TasksActivity::class.java
                     else -> PopupTransactionActivity::class.java
                 }
-                startActivity(Intent(this@QuickEntryActivity, target).putExtra("createLoan", kind == "loan"))
+                destination = Intent(this@QuickEntryActivity, target).putExtra("createLoan", kind == "loan")
             }
-            finish()
+            navigateWhenReady()
         }
+    }
+    private fun navigateWhenReady() {
+        val next = destination ?: return
+        if (com.example.financetracker.security.AppLock.isLocked(this) ||
+            !lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED) || isFinishing) return
+        destination = null; startActivity(next); finish()
     }
 }
 
