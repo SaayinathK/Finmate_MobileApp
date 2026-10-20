@@ -13,6 +13,7 @@ import com.example.financetracker.R
 import com.example.financetracker.activities.QuickEntryActivity
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.models.TaskCompletion
+import com.example.financetracker.ui.WalletGuideView
 import com.example.financetracker.receiver.NotificationScheduler
 import com.example.financetracker.utils.PlannerRules
 import kotlinx.coroutines.CoroutineScope
@@ -101,6 +102,14 @@ class TodayTasksWidget : AppWidgetProvider() {
                 views.setTextViewText(R.id.widgetSubtitle, "${today.format(DateTimeFormatter.ofPattern("EEE, d MMM"))} · ${snapshot.dueIds.count { it in done }}/${snapshot.dueIds.size} done")
                 views.setOnClickPendingIntent(R.id.widgetHeader, launch(context, "today", 900))
                 views.setOnClickPendingIntent(R.id.widgetAdd, launch(context, "task", 901))
+                val gesture = when {
+                    snapshot.dueIds.isEmpty() -> WalletGuideView.Gesture.WELCOME
+                    snapshot.dueIds.all { it in done } -> WalletGuideView.Gesture.ENCOURAGE
+                    else -> WalletGuideView.Gesture.PLAN
+                }
+                views.removeAllViews(R.id.widgetCharacter)
+                views.addView(R.id.widgetCharacter, WidgetCharacter.views(context, gesture))
+                views.setOnClickPendingIntent(R.id.widgetCharacter, launch(context, "today", 900))
                 // Collection rows remain individually accessible, without truncating today's list.
                 if (android.os.Build.VERSION.SDK_INT >= 31) {
                     val items = RemoteViews.RemoteCollectionItems.Builder().setHasStableIds(true).setViewTypeCount(1)

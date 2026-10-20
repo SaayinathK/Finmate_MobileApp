@@ -51,6 +51,7 @@ open class SettingsActivity : WalletScreen() {
                 AlertDialog.Builder(this@SettingsActivity).setTitle(R.string.animation_gender)
                     .setSingleChoiceItems(characters.map { getString(it.label) }.toTypedArray(), characters.indexOf(character)) { dialog, which ->
                         AnimationCharacter.select(this@SettingsActivity, characters[which])
+                        com.example.financetracker.widget.TodayTasksWidget.refresh(this@SettingsActivity)
                         dialog.dismiss(); render()
                     }.setNegativeButton("Cancel", null).show()
             }

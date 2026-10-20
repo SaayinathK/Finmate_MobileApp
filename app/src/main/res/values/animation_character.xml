@@ -2,6 +2,6 @@
     <string name="animation_male">Male</string>
     <string name="animation_female">Female</string>
     <string name="animation_gender">Animation gender</string>
-    <string name="animation_character_summary">Choose the character for startup, guides and achievements.</string>
+    <string name="animation_character_summary">Choose the character for startup, guides, achievements and your home-screen widget.</string>
     <string name="animation_character_current">Animation gender: %1$s</string>
 </resources>
