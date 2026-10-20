@@ -13,6 +13,8 @@ interface TaskDao {
     suspend fun allTasks(): List<DailyTask>
     @Query("SELECT * FROM daily_tasks WHERE id = :id")
     suspend fun task(id: Int): DailyTask?
+    @Query("SELECT * FROM daily_tasks WHERE parentTaskId = :id ORDER BY startDate, deadlineTime, id")
+    suspend fun children(id: Int): List<DailyTask>
     @Insert suspend fun insert(task: DailyTask): Long
     @Update suspend fun update(task: DailyTask)
     @Query("SELECT * FROM task_completions ORDER BY completedAt DESC")

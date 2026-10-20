@@ -18,42 +18,65 @@ import com.example.financetracker.utils.PlannerRules
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class TodayTasksWidget : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { refresh(context) }
     override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, options: Bundle) { refresh(context) }
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        val editor = context.getSharedPreferences("swallet_widget", Context.MODE_PRIVATE).edit()
+        appWidgetIds.forEach { editor.remove("expanded_$it") }; editor.apply()
+    }
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action !in setOf(REFRESH, TOGGLE)) return
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                if (intent.action == TOGGLE) {
-                    val db = AppDatabase.getDatabase(context)
-                    val date = intent.getStringExtra("date")
-                    // Ignore yesterday's cached clicks and tasks removed since the last refresh.
-                    if (date == LocalDate.now().toString() && db.userProfileDao().getLoggedInUser() != null) {
-                        db.withTransaction {
-                            val task = db.taskDao().task(intent.getIntExtra("taskId", -1))
-                            if (task != null && PlannerRules.occurs(task, LocalDate.now())) {
-                                if (intent.getBooleanExtra("complete", true)) db.taskDao().complete(TaskCompletion(
-                                    taskId = task.id, occurrenceDate = date, title = task.title, notes = task.notes))
-                                else db.taskDao().undo(task.id, date)
-                            }
-                        }
-                        NotificationScheduler.rescheduleTasks(context)
-                    }
+                interactions.withLock {
+                    if (intent.action == TOGGLE) handleInteraction(context, intent)
+                    updateAll(context)
                 }
-                updateAll(context)
             } catch (error: Exception) { android.util.Log.w("TodayTasksWidget", "Could not refresh tasks", error) }
             finally { pending.finish() }
+        }
+    }
+    private suspend fun handleInteraction(context: Context, intent: Intent) {
+        val today = LocalDate.now()
+        val db = AppDatabase.getDatabase(context)
+        // Ignore stale cached clicks, removed tasks, and signed-out widget sessions.
+        if (intent.getStringExtra("date") != today.toString() || db.userProfileDao().getLoggedInUser() == null) return
+        val taskId = intent.getIntExtra("taskId", -1)
+        val operation = intent.getStringExtra("operation")
+        if (operation == "expand") {
+            val widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+            val validIds = AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, TodayTasksWidget::class.java))
+            if (widgetId !in validIds || db.taskDao().task(taskId)?.active != true || db.taskDao().children(taskId).none { it.active }) return
+            val prefs = context.getSharedPreferences("swallet_widget", Context.MODE_PRIVATE)
+            val key = "expanded_$widgetId"
+            val expanded = prefs.getStringSet(key, emptySet()).orEmpty().toMutableSet()
+            if (!expanded.add(taskId.toString())) expanded.remove(taskId.toString())
+            prefs.edit().putStringSet(key, expanded).apply()
+        } else if (operation == null || operation == "complete") {
+            db.withTransaction {
+                val task = db.taskDao().task(taskId)
+                val parentActive = task?.parentTaskId?.let { db.taskDao().task(it)?.active } != false
+                if (task != null && parentActive && PlannerRules.occurs(task, today)) {
+                    if (intent.getBooleanExtra("complete", true)) db.taskDao().complete(TaskCompletion(
+                        taskId = task.id, occurrenceDate = PlannerRules.completionDate(task, today), title = task.title, notes = task.notes))
+                    else db.taskDao().undo(task.id, PlannerRules.completionDate(task, today))
+                }
+            }
+            NotificationScheduler.rescheduleTasks(context)
         }
     }
     companion object {
         private const val REFRESH = "com.example.financetracker.widget.REFRESH"
         private const val TOGGLE = "com.example.financetracker.widget.TOGGLE"
+        private val interactions = Mutex()
         fun refresh(context: Context) { context.sendBroadcast(Intent(context, TodayTasksWidget::class.java).setAction(REFRESH)) }
         private fun launch(context: Context, kind: String, code: Int) = PendingIntent.getActivity(context, code,
             Intent(context, QuickEntryActivity::class.java).setAction("com.example.financetracker.quick.$kind")
@@ -63,50 +86,52 @@ class TodayTasksWidget : AppWidgetProvider() {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(ComponentName(context, TodayTasksWidget::class.java))
             if (ids.isEmpty()) return
-            val db = AppDatabase.getDatabase(context)
-            val signedIn = db.userProfileDao().getLoggedInUser() != null
-            val today = LocalDate.now()
-            val tasks = if (signedIn) db.taskDao().allTasks().filter { PlannerRules.occurs(it, today) } else emptyList()
-            val done = if (signedIn) db.taskDao().completions().filter { it.occurrenceDate == today.toString() }.map { it.taskId }.toSet() else emptySet()
-            val prefs = context.getSharedPreferences("finmate_settings", Context.MODE_PRIVATE)
-            val dark = when (prefs.getString("theme", "system")) {
-                "dark" -> true; "light" -> false
-                else -> context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
-            }
-            val ink = android.graphics.Color.parseColor(if (dark) "#EDF3FC" else "#182B48")
-            val muted = android.graphics.Color.parseColor(if (dark) "#A6B6CA" else "#677990")
             ids.forEach { id ->
+                val snapshot = TodayTasksSnapshot.load(context, id)
+                val today = snapshot.date
+                val tasks = snapshot.tasks
+                val done = snapshot.done
+                val signedIn = snapshot.signedIn
+                val dark = TodayTasksSnapshot.isDark(context)
+                val ink = android.graphics.Color.parseColor(if (dark) "#EDF3FC" else "#182B48")
+                val muted = android.graphics.Color.parseColor(if (dark) "#A6B6CA" else "#677990")
                 val views = RemoteViews(context.packageName, R.layout.widget_today_tasks)
                 views.setInt(R.id.widgetRoot, "setBackgroundResource", if (dark) R.drawable.widget_bg_dark else R.drawable.widget_bg_light)
                 views.setTextColor(R.id.widgetTitle, ink); views.setTextColor(R.id.widgetSubtitle, muted)
-                views.setTextViewText(R.id.widgetSubtitle, "${today.format(DateTimeFormatter.ofPattern("EEE, d MMM"))} · ${tasks.count { it.id in done }}/${tasks.size} done")
+                views.setTextViewText(R.id.widgetSubtitle, "${today.format(DateTimeFormatter.ofPattern("EEE, d MMM"))} · ${snapshot.dueIds.count { it in done }}/${snapshot.dueIds.size} done")
                 views.setOnClickPendingIntent(R.id.widgetHeader, launch(context, "today", 900))
                 views.setOnClickPendingIntent(R.id.widgetAdd, launch(context, "task", 901))
-                views.removeAllViews(R.id.widgetRows)
-                val availableHeight = manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 250)
-                val limit = ((availableHeight - 90) / 44).coerceIn(1, 5)
-                val ordered = tasks.sortedBy { it.id in done }
-                ordered.take(limit).forEach { task ->
-                    val completed = task.id in done
-                    val row = RemoteViews(context.packageName, R.layout.widget_task_row)
-                    row.setTextViewText(R.id.widgetTaskTitle, "${if (completed) "☑" else "☐"}  ${task.title}")
-                    row.setTextColor(R.id.widgetTaskTitle, if (completed) muted else ink)
-                    row.setContentDescription(R.id.widgetTaskTitle, "${if (completed) "Mark incomplete" else "Complete"}: ${task.title}")
-                    row.setOnClickPendingIntent(R.id.widgetTaskTitle, PendingIntent.getBroadcast(context, task.id,
-                        Intent(context, TodayTasksWidget::class.java).setAction(TOGGLE).putExtra("taskId", task.id)
-                            .putExtra("date", today.toString()).putExtra("complete", !completed),
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
-                    views.addView(R.id.widgetRows, row)
+                // Collection rows remain individually accessible, without truncating today's list.
+                if (android.os.Build.VERSION.SDK_INT >= 31) {
+                    val items = RemoteViews.RemoteCollectionItems.Builder().setHasStableIds(true).setViewTypeCount(1)
+                    tasks.forEach { task -> items.addItem(task.id.toLong(), snapshot.row(context, task)) }
+                    views.setRemoteAdapter(R.id.widgetRows, items.build())
+                } else {
+                    val service = Intent(context, TodayTasksService::class.java)
+                        .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
+                        .setData(android.net.Uri.parse("swallet://today-tasks/$id"))
+                    @Suppress("DEPRECATION")
+                    views.setRemoteAdapter(R.id.widgetRows, service)
                 }
+                views.setEmptyView(R.id.widgetRows, R.id.widgetEmpty)
+                views.setTextColor(R.id.widgetEmpty, muted)
+                views.setTextViewText(R.id.widgetEmpty, if (signedIn) "No tasks today" else "Open SWallet to sign in")
+                views.setPendingIntentTemplate(R.id.widgetRows, PendingIntent.getBroadcast(context, id,
+                    Intent(context, TodayTasksWidget::class.java).setAction(TOGGLE),
+                    PendingIntent.FLAG_UPDATE_CURRENT or (if (android.os.Build.VERSION.SDK_INT >= 31) PendingIntent.FLAG_MUTABLE else 0)))
                 views.setTextColor(R.id.widgetFooter, muted)
                 views.setTextViewText(R.id.widgetFooter, when {
                     !signedIn -> "Open SWallet to sign in"
                     tasks.isEmpty() -> "No tasks today · Tap + to add"
-                    tasks.size > limit -> "+${tasks.size - limit} more · Open checklist"
+                    tasks.isNotEmpty() -> "Tap a task for subtasks · Check to complete"
                     else -> "Open checklist"
                 })
                 views.setOnClickPendingIntent(R.id.widgetFooter, launch(context, "today", 900))
                 manager.updateAppWidget(id, views)
+                if (android.os.Build.VERSION.SDK_INT < 31) {
+                    @Suppress("DEPRECATION")
+                    manager.notifyAppWidgetViewDataChanged(id, R.id.widgetRows)
+                }
             }
         }
     }

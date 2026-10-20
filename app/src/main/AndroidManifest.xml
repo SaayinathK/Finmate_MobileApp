@@ -6,6 +6,7 @@
     <!-- Permissions -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -48,6 +49,7 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/today_tasks_widget" />
         </receiver>
+        <service android:name=".widget.TodayTasksService" android:exported="false" android:permission="android.permission.BIND_REMOTEVIEWS" />
         <!-- Daily reminder receiver -->
         <receiver
             android:name=".receiver.DailyReminderReceiver"

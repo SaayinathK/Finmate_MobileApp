@@ -17,19 +17,7 @@ object NotificationHelper {
 
     // 🔔 Create notification channel (Android 8+)
     fun createNotificationChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = CHANNEL_DESC
-            }
-
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
+        NotificationSound.channel(context)
     }
 
     // 🚨 Budget exceeded notification
@@ -45,7 +33,7 @@ object NotificationHelper {
     fun sendNotification(context: Context, title: String, message: String) {
         if (!context.getSharedPreferences("finmate_settings", Context.MODE_PRIVATE).getBoolean("notifications_enabled", true)) return
         if (Build.VERSION.SDK_INT >= 33 && androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) return
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, NotificationSound.channel(context))
             .setSmallIcon(R.drawable.ic_notification) // Make sure this exists in res/drawable
             .setContentTitle(title)
             .setContentText(message)

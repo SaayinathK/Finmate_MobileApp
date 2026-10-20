@@ -1,3 +1,15 @@
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widgetTaskTitle" android:layout_width="match_parent" android:layout_height="44dp"
-    android:gravity="center_vertical" android:textSize="14sp" android:maxLines="1" android:ellipsize="end" android:textColor="#182B48" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetTaskRow" android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="56dp"
+    android:paddingHorizontal="8dp" android:paddingVertical="8dp" android:background="@drawable/widget_row_light">
+    <TextView android:id="@+id/widgetTaskCheck" android:layout_width="48dp" android:layout_height="48dp"
+        android:gravity="center" android:textSize="24sp" android:importantForAccessibility="yes" />
+    <LinearLayout android:id="@+id/widgetTaskContent" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+        <TextView android:id="@+id/widgetTaskTitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="14sp" android:textStyle="bold" android:textColor="#182B48" />
+        <TextView android:id="@+id/widgetTaskTime" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="11sp" android:textColor="#677990" />
+    </LinearLayout>
+    <TextView android:id="@+id/widgetTaskExpand" android:layout_width="48dp" android:layout_height="48dp"
+        android:gravity="center" android:textSize="24sp" android:visibility="gone" />
+</LinearLayout>

@@ -38,7 +38,7 @@ class DailyReminderReceiver : BroadcastReceiver() {
                 var target: Class<*> = AddTransactionActivity::class.java
                 if (kind == "checklist") {
                     val completed = dao.completions()
-                    val remaining = dao.allTasks().count { task -> PlannerRules.occurs(task, today) && completed.none { it.taskId == task.id && it.occurrenceDate == today.toString() } }
+                    val remaining = dao.allTasks().count { task -> PlannerRules.occurs(task, today, completed) && !PlannerRules.isCompleted(task, today, completed) }
                     title = "Your checklist is ready"
                     message = if (remaining == 0) "Review today's checklist or plan your next task." else "$remaining tasks left on today's checklist. Take the next small step."
                     target = TasksActivity::class.java
@@ -49,15 +49,22 @@ class DailyReminderReceiver : BroadcastReceiver() {
                 } else if (kind == "task") {
                     val id = intent?.getIntExtra("taskId", -1) ?: -1
                     val task = dao.task(id) ?: return@launch
-                    if (!task.reminderEnabled || !PlannerRules.occurs(task, today) || dao.completions().any { it.taskId == id && it.occurrenceDate == today.toString() }) return@launch
+                    val validDay = if (task.recurrence == "ONCE") {
+                        val first = LocalDate.parse(task.reminderDate ?: task.startDate)
+                        today == first || (task.remindUntilDone && today > first)
+                    } else PlannerRules.occurs(task, today)
+                    if (!task.active || !task.reminderEnabled || !validDay || PlannerRules.isCompleted(task, today, dao.completions())) return@launch
                     title = task.title; message = task.notes.ifBlank { "A little nudge for your scheduled task." }; target = TasksActivity::class.java
                 }
                 if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return@launch
                 val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                manager.createNotificationChannel(NotificationChannel("swallet_routines", "Money & task reminders", NotificationManager.IMPORTANCE_DEFAULT))
+                val channel = com.example.financetracker.utils.NotificationSound.channel(context)
                 val code = intent?.getIntExtra("code", 100) ?: 100
-                val tap = PendingIntent.getActivity(context, code, Intent(context, target).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                manager.notify(code, NotificationCompat.Builder(context, "swallet_routines").setSmallIcon(R.drawable.ic_notification)
+                if (kind == "task") target = TaskEditorActivity::class.java
+                val destination = Intent(context, target).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                if (kind == "task") destination.putExtra("taskId", intent?.getIntExtra("taskId", -1) ?: -1)
+                val tap = PendingIntent.getActivity(context, code, destination, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                manager.notify(code, NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.ic_notification)
                     .setContentTitle(title).setContentText(message).setStyle(NotificationCompat.BigTextStyle().bigText(message))
                     .setContentIntent(tap).setAutoCancel(true).build())
             } finally {

@@ -56,9 +56,12 @@ object NotificationScheduler {
             val dao = AppDatabase.getDatabase(context).taskDao()
             val completed = dao.completions()
             dao.allTasks().forEach { task ->
+                if (task.recurrence == "ONCE" && PlannerRules.isCompleted(task, java.time.LocalDate.now(), completed)) return@forEach
                 var next = PlannerRules.nextReminder(task, LocalDateTime.now())
-                if (next != null && completed.any { it.taskId == task.id && it.occurrenceDate == next!!.toLocalDate().toString() }) {
-                    next = PlannerRules.nextReminder(task, next!!.toLocalDate().atTime(23,59,59))
+                var skipped = 0
+                while (next != null && PlannerRules.isCompleted(task, next!!.toLocalDate(), completed) && skipped <= completed.size) {
+                    next = PlannerRules.nextReminder(task, next!!)
+                    skipped++
                 }
                 if (next != null) { schedule(context, 10000 + task.id, "task", next!!, task.id); ids.add(task.id.toString()) }
             }

@@ -19,19 +19,7 @@ object NotificationHelper {
 
     // 🔔 Create notification channel (Android 8+)
     fun createNotificationChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = CHANNEL_DESC
-            }
-
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
+        com.example.financetracker.utils.NotificationSound.channel(context)
     }
 
     // 🚨 Budget exceeded notification
@@ -45,21 +33,6 @@ object NotificationHelper {
 
     // 📢 Reusable notification for any purpose (logout, reset, etc.)
     fun sendNotification(context: Context, title: String, message: String) {
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification) // Make sure this exists in res/drawable
-            .setContentTitle(title)
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-
-        val notificationId = (title + message).hashCode().absoluteValue
-
-        // ✅ Permission check for POST_NOTIFICATIONS
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            NotificationManagerCompat.from(context)
-                .notify(notificationId, builder.build())
-        } else {
-            // 🚫 No permission - you might log or ignore
-        }
+        com.example.financetracker.utils.NotificationHelper.sendNotification(context, title, message)
     }
 }
